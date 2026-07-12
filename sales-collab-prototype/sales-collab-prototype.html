@@ -92,6 +92,17 @@
 
   /* ---------- workspace ---------- */
   .backlink{font-family:var(--mono);font-size:11px;background:none;border:none;color:var(--muted);padding:0;margin-bottom:10px;text-decoration:underline;cursor:pointer}
+  .ws-search-wrap{position:relative;margin-bottom:14px;max-width:380px}
+  .ws-search{width:100%;border:1px solid var(--line);border-radius:2px;padding:8px 10px;font-size:13px;font-family:var(--sans);background:var(--surface);color:var(--ink)}
+  .ws-search:focus{outline:2px solid var(--ink)}
+  .ws-search-results{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:1px solid var(--ink);border-radius:2px;max-height:280px;overflow-y:auto;z-index:30;display:none;box-shadow:0 4px 16px rgba(0,0,0,.12)}
+  .ws-search-results.open{display:block}
+  .ws-result{padding:9px 12px;border-bottom:1px solid var(--line-soft);cursor:pointer}
+  .ws-result:last-child{border-bottom:none}
+  .ws-result:hover{background:var(--fill)}
+  .ws-result .n{font-weight:700;font-size:13px}
+  .ws-result .m{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px}
+  .ws-empty{padding:10px 12px;font-size:12px;color:var(--muted);font-family:var(--mono)}
   .ws-head{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:flex-start;margin-bottom:6px}
   .ws-head h2{margin:0}
   .ws-sub{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px}
@@ -469,6 +480,10 @@ function vWorkspace(){
   const stageNow = L.replied ? Math.max(L.stage,1) : L.stage;
   return `
   <button class="backlink" data-action="nav" data-screen="queue" data-ok="true">← Back to queue</button>
+  <div class="ws-search-wrap">
+    <input class="ws-search" id="leadSearch" type="text" placeholder="Search leads by name, project, or phone…" autocomplete="off">
+    <div class="ws-search-results" id="leadSearchResults"></div>
+  </div>
   <div class="ws-head">
     <div>
       <h2>${L.name}</h2>
@@ -664,8 +679,46 @@ function render(){
   renderNav();
   const views = {queue:vQueue,workspace:vWorkspace,dashboard:vDashboard,controls:vControls,audit:vAudit,partner:vPartner};
   $('#view').innerHTML = views[state.screen]();
+  if(state.screen==='workspace') wireLeadSearch();
   window.scrollTo(0,0);
 }
+
+/* =============== LEAD SEARCH (workspace) =============== */
+function wireLeadSearch(){
+  const input = $('#leadSearch');
+  const resultsEl = $('#leadSearchResults');
+  if(!input || !resultsEl) return;
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    if(!q){ resultsEl.innerHTML=''; resultsEl.classList.remove('open'); return; }
+    const matches = queueOrder
+      .map(id=>leads[id])
+      .filter(L => [L.name,L.project,L.ask,L.src,L.owner,L.phone].join(' ').toLowerCase().includes(q));
+    resultsEl.innerHTML = matches.length
+      ? matches.map(L=>`
+        <div class="ws-result" data-action="search-select" data-lead="${L.id}">
+          <div class="n">${L.name}${L.id===state.currentLead?' <span class="chip" style="margin-left:6px">CURRENT</span>':''}</div>
+          <div class="m">${L.project} · ${L.ask} · INTENT ${L.score} · ${L.band}</div>
+        </div>`).join('')
+      : `<div class="ws-empty">No leads match "${esc(input.value)}"</div>`;
+    resultsEl.classList.add('open');
+  });
+
+  input.addEventListener('keydown', e => {
+    if(e.key==='Escape'){ input.value=''; resultsEl.innerHTML=''; resultsEl.classList.remove('open'); input.blur(); }
+  });
+
+  input.addEventListener('focus', () => { if(input.value.trim()) resultsEl.classList.add('open'); });
+}
+
+document.addEventListener('click', e => {
+  const wrap = document.querySelector('.ws-search-wrap');
+  if(wrap && !wrap.contains(e.target)){
+    const r = $('#leadSearchResults');
+    if(r) r.classList.remove('open');
+  }
+});
 
 /* =============== ACTIONS =============== */
 document.addEventListener('click', e => {
@@ -687,6 +740,7 @@ document.addEventListener('click', e => {
     render();
   }
   if(a==='open'){ state.currentLead = el.dataset.lead; state.screen='workspace'; render(); }
+  if(a==='search-select'){ state.currentLead = el.dataset.lead; state.screen='workspace'; render(); }
 
   if(a==='why'){ $('#whybox').classList.toggle('open'); }
 
