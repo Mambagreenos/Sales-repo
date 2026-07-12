@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Collaboration + AI Follow-up — Grayscale Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f4f4f2; --surface:#ffffff; --ink:#121212; --muted:#5c5c5c;
+    --line:#c8c8c8; --line-soft:#e4e4e4; --fill:#ededeb; --dark:#1a1a1a;
+    --mono:'IBM Plex Mono',ui-monospace,monospace; --sans:'Space Grotesk',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:var(--sans);background:var(--paper);color:var(--ink);font-size:15px;line-height:1.45}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible,a:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .mono{font-family:var(--mono)}
+
+  /* ---------- shell ---------- */
+  .shell{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+  .rail{border-right:1px solid var(--line);background:var(--surface);padding:18px 0;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+  .brand{padding:0 18px 14px;border-bottom:1px solid var(--line-soft)}
+  .brand h1{font-size:15px;font-weight:700;letter-spacing:-.01em}
+  .brand .sub{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:.05em}
+  nav{padding:10px 8px;flex:1}
+  .navlbl{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--muted);padding:10px 10px 4px}
+  .navitem{display:flex;align-items:center;justify-content:space-between;width:100%;text-align:left;background:none;border:1px solid transparent;padding:8px 10px;font-size:13.5px;border-radius:2px;color:var(--ink)}
+  .navitem:hover{background:var(--fill)}
+  .navitem.active{background:var(--ink);color:#fff}
+  .navitem.locked{color:#a3a3a3}
+  .navitem .lock{font-family:var(--mono);font-size:10px}
+  .railfoot{padding:12px 18px;border-top:1px solid var(--line-soft);font-family:var(--mono);font-size:9.5px;color:var(--muted);line-height:1.7}
+
+  .main{display:flex;flex-direction:column;min-width:0}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 22px;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;z-index:20}
+  .roleswitch{display:flex;border:1px solid var(--ink);border-radius:2px;overflow:hidden}
+  .roleswitch button{border:none;background:var(--surface);padding:6px 13px;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em}
+  .roleswitch button+button{border-left:1px solid var(--ink)}
+  .roleswitch button.on{background:var(--ink);color:#fff}
+  .whoami{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+
+  /* ---------- guide strip ---------- */
+  .guide{background:var(--ink);color:#e8e8e8;padding:10px 22px;font-size:12.5px;display:flex;gap:14px;align-items:flex-start;justify-content:space-between}
+  .guide b{color:#fff}
+  .guide .legend{font-family:var(--mono);font-size:10px;margin-top:5px;color:#bdbdbd}
+  .guide button{background:none;border:1px solid #777;color:#ddd;font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:2px;flex-shrink:0}
+
+  .view{padding:22px;max-width:1160px;width:100%;margin:0 auto}
+  .pagehead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--muted)}
+  h2{font-size:22px;font-weight:700;letter-spacing:-.02em;margin-top:2px}
+  .pagenote{font-size:12.5px;color:var(--muted);max-width:520px}
+
+  /* ---------- chips + AI grammar ---------- */
+  .chip{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;letter-spacing:.04em;padding:2px 7px;border-radius:2px;border:1px solid var(--line);background:var(--surface);white-space:nowrap}
+  .chip.inv{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .chip.ai{border-style:dashed;border-color:#8a8a8a;color:#3d3d3d}
+  .chip.auto{border-style:dotted;border-color:#8a8a8a;color:#3d3d3d}
+  .chip.human{border:1px solid var(--ink);font-weight:600}
+  .ai-card{border:1.5px dashed #9a9a9a;background:var(--surface);border-radius:2px}
+  .auto-card{border:1.5px dotted #9a9a9a;background:var(--surface);border-radius:2px}
+  .solid-card{border:1.5px solid var(--ink);background:var(--surface);border-radius:2px}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:2px}
+  .btn{border:1px solid var(--ink);background:var(--surface);color:var(--ink);padding:7px 14px;font-size:12.5px;font-weight:500;border-radius:2px}
+  .btn:hover{background:var(--fill)}
+  .btn.primary{background:var(--ink);color:#fff}
+  .btn.primary:hover{background:#000}
+  .btn.small{padding:4px 10px;font-size:11.5px}
+  .btn.ghost{border-color:var(--line);color:var(--muted)}
+
+  /* ---------- queue ---------- */
+  .queue-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .leadcard{display:grid;grid-template-columns:1fr auto;gap:6px 16px;padding:14px 16px;border:1px solid var(--line);background:var(--surface);border-radius:2px;margin-bottom:10px;cursor:pointer;transition:border-color .12s}
+  .leadcard:hover{border-color:var(--ink)}
+  .leadcard .name{font-weight:700;font-size:15.5px}
+  .leadcard .meta{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:2px}
+  .leadcard .why{font-size:12.5px;color:#333;margin-top:7px;border-left:2px solid var(--line);padding-left:8px}
+  .leadcard .why b{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--muted);font-weight:500}
+  .lc-right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+  .sla{font-family:var(--mono);font-size:11px;padding:3px 8px;border:1px solid var(--line);border-radius:2px;background:var(--surface)}
+  .sla.urgent{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+  .sla.breach{background:#fff;border:1.5px solid var(--ink);font-weight:600;text-decoration:underline}
+  .dots{font-size:13px;letter-spacing:2px}
+  .intlbl{font-family:var(--mono);font-size:9.5px;color:var(--muted)}
+  .filtered{margin-top:18px}
+  .filtered summary{font-family:var(--mono);font-size:11px;color:var(--muted);cursor:pointer;padding:8px 0}
+  .filtered .frow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;border:1px dotted #a8a8a8;border-radius:2px;margin-bottom:6px;font-size:12.5px;color:#444;background:var(--surface)}
+
+  /* ---------- workspace ---------- */
+  .backlink{font-family:var(--mono);font-size:11px;background:none;border:none;color:var(--muted);padding:0;margin-bottom:10px;text-decoration:underline;cursor:pointer}
+  .ws-head{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:flex-start;margin-bottom:6px}
+  .ws-head h2{margin:0}
+  .ws-sub{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px}
+  .stepper{display:flex;gap:0;margin:14px 0 20px;flex-wrap:wrap}
+  .step{font-family:var(--mono);font-size:10px;letter-spacing:.05em;padding:6px 12px;border:1px solid var(--line);border-left:none;color:var(--muted);background:var(--surface)}
+  .step:first-child{border-left:1px solid var(--line)}
+  .step.done{background:var(--fill);color:var(--ink)}
+  .step.now{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+  .ws-grid{display:grid;grid-template-columns:1fr 380px;gap:16px;align-items:start}
+  .panel-h{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--line-soft);display:flex;justify-content:space-between;align-items:center}
+  .timeline{padding:14px;display:flex;flex-direction:column;gap:10px;max-height:520px;overflow-y:auto}
+  .msg{max-width:88%;padding:9px 12px;border-radius:2px;font-size:13px}
+  .msg .m-meta{font-family:var(--mono);font-size:9.5px;color:var(--muted);margin-top:5px}
+  .msg.in{border:1px solid var(--line);background:var(--surface);align-self:flex-start}
+  .msg.out{border:1.5px solid var(--ink);background:var(--surface);align-self:flex-end}
+  .msg.auto{border:1.5px dotted #9a9a9a;background:var(--surface);align-self:flex-end;color:#333}
+  .msg.sys{align-self:center;font-family:var(--mono);font-size:10px;color:var(--muted);border:none;padding:2px}
+  .composer{border-top:1px solid var(--line-soft);padding:10px 14px;font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+  .ai-panel{display:flex;flex-direction:column;gap:12px}
+  .ai-block{padding:12px 14px}
+  .ai-block h4{font-family:var(--mono);font-size:10px;letter-spacing:.12em;font-weight:600;color:#3d3d3d;display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+  .ai-block p{font-size:13px;color:#222}
+  .reasons{margin:8px 0 0;padding-left:16px;font-size:12.5px;color:#333}
+  .reasons li{margin-bottom:4px}
+  .scoreline{display:flex;align-items:baseline;gap:10px}
+  .scoreline .big{font-family:var(--mono);font-size:26px;font-weight:600}
+  .drafttext{width:100%;border:1px solid var(--line);border-radius:2px;padding:10px;font-size:13px;font-family:var(--sans);color:#222;background:#fbfbfa;min-height:120px;resize:vertical}
+  .drafttext:focus{outline:2px solid var(--ink)}
+  .draft-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .whylink{background:none;border:none;font-family:var(--mono);font-size:10px;color:var(--muted);text-decoration:underline;padding:0}
+  .whybox{border-top:1px dashed var(--line);margin-top:10px;padding-top:8px;font-size:12px;color:#444;display:none}
+  .whybox.open{display:block}
+  .cadence{list-style:none;margin-top:6px}
+  .cadence li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line-soft);font-size:12.5px}
+  .cadence li span:first-child{font-family:var(--mono);font-size:10.5px;color:var(--muted);white-space:nowrap}
+  .consent{display:flex;gap:6px;flex-wrap:wrap}
+
+  /* ---------- manager ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+  .kpi{padding:14px;border:1px solid var(--line);background:var(--surface);border-radius:2px}
+  .kpi .v{font-family:var(--mono);font-size:22px;font-weight:600}
+  .kpi .l{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .kpi .d{font-family:var(--mono);font-size:9.5px;color:var(--muted);margin-top:6px}
+  .heat{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--surface)}
+  .heat th,.heat td{border:1px solid var(--line);padding:9px 10px;text-align:center}
+  .heat th{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--muted);font-weight:500}
+  .heat td:first-child{text-align:left;font-weight:500}
+  .h0{background:#fff}.h1{background:#e6e6e4}.h2{background:#bdbdbb}.h3{background:var(--ink);color:#fff;font-weight:600}
+  .heatwrap{overflow-x:auto}
+  .esc{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;padding:13px 15px;margin-bottom:10px}
+  .esc .t{font-weight:600;font-size:14px}
+  .esc .d{font-size:12.5px;color:#333;margin-top:4px}
+  .esc .m{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px}
+  .esc-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+  .sec-h{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--muted);margin:20px 0 9px}
+
+  /* ---------- controls ---------- */
+  .ctlrow{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 15px;border-bottom:1px solid var(--line-soft)}
+  .ctlrow:last-child{border-bottom:none}
+  .ctlrow .n{font-size:13.5px;font-weight:500}
+  .ctlrow .d{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .seg{display:flex;border:1px solid var(--line);border-radius:2px;overflow:hidden;flex-shrink:0}
+  .seg button{border:none;background:var(--surface);font-family:var(--mono);font-size:10px;padding:5px 10px;letter-spacing:.04em;color:var(--muted)}
+  .seg button+button{border-left:1px solid var(--line)}
+  .seg button.on{background:var(--ink);color:#fff}
+  .blockrow{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 15px;border-bottom:1px solid var(--line-soft);color:#333}
+  .blockrow:last-child{border-bottom:none}
+  .gradnote{font-size:12px;color:var(--muted);border-left:2px solid var(--line);padding:6px 0 6px 12px;margin-top:14px}
+
+  /* ---------- audit ---------- */
+  .audit{width:100%;border-collapse:collapse;font-size:12px;background:var(--surface)}
+  .audit th,.audit td{border-bottom:1px solid var(--line-soft);padding:9px 10px;text-align:left;vertical-align:top}
+  .audit th{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--muted);font-weight:500;border-bottom:1px solid var(--line)}
+  .audit td.t{font-family:var(--mono);font-size:10.5px;color:var(--muted);white-space:nowrap}
+  .audit tr.you td{background:#f0f0ee}
+  .auditwrap{overflow-x:auto}
+
+  /* ---------- partner ---------- */
+  .pcard{padding:14px 16px;margin-bottom:10px}
+  .pcard .name{font-weight:700;font-size:15px}
+  .pcard .meta{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:2px}
+  .mask{font-family:var(--mono);letter-spacing:1px;color:#777}
+  .pgrid{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}
+  .ministep{display:flex;gap:0;margin-top:10px;flex-wrap:wrap}
+  .ministep span{font-family:var(--mono);font-size:9px;padding:3px 8px;border:1px solid var(--line);border-left:none;color:var(--muted)}
+  .ministep span:first-child{border-left:1px solid var(--line)}
+  .ministep span.now{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .restrict{font-family:var(--mono);font-size:10px;border:1px dashed #9a9a9a;padding:8px 10px;color:#555;margin-top:10px;border-radius:2px}
+
+  /* ---------- toast ---------- */
+  .toasts{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:99;width:min(480px,92vw)}
+  .toast{background:var(--ink);color:#fff;font-size:12.5px;padding:10px 14px;border-radius:2px;display:flex;justify-content:space-between;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+  .toast .mono{color:#bbb;font-size:9.5px;flex-shrink:0}
+  @media (prefers-reduced-motion:no-preference){
+    .toast{animation:pop .18s ease-out}
+    @keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width:860px){
+    .shell{grid-template-columns:1fr}
+    .rail{position:static;height:auto;border-right:none;border-bottom:1px solid var(--line);padding:10px 0}
+    nav{display:flex;overflow-x:auto;padding:8px;gap:4px}
+    .navlbl{display:none}
+    .navitem{white-space:nowrap;width:auto}
+    .railfoot{display:none}
+    .ws-grid{grid-template-columns:1fr}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .view{padding:14px}
+    .guide{flex-direction:column}
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="rail">
+    <div class="brand">
+      <h1>LeadLoop</h1>
+      <div class="sub">SALES COLLAB + AI FOLLOW-UP<br>GRAYSCALE PROTOTYPE · v0.1</div>
+    </div>
+    <nav id="nav"></nav>
+    <div class="railfoot">DASHED = AI SUGGESTION<br>DOTTED = AUTO · LOGGED<br>SOLID = HUMAN-APPROVED</div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="whoami" id="whoami"></span>
+      <div class="roleswitch" id="roles"></div>
+    </div>
+    <div class="guide" id="guide">
+      <div>
+        <b>Clickable demo path:</b> open <b>Ananya Rao</b> in the queue → approve the AI draft → approve the cadence → switch role to <b>MANAGER</b> → resolve the escalation → open <b>Audit Log</b> (your own clicks will be in it).
+        <div class="legend">LEGEND — DASHED BORDER: AI SUGGESTION (NEEDS HUMAN) · DOTTED: AI AUTO-ACTION (LOGGED) · SOLID: HUMAN-APPROVED</div>
+      </div>
+      <button data-action="dismiss-guide">DISMISS</button>
+    </div>
+    <div class="view" id="view"></div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+/* =============== STATE =============== */
+const now = () => new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+
+const state = {
+  role:'exec',           // exec | manager | partner
+  screen:'queue',
+  currentLead:null,
+  guideDismissed:false
+};
+
+const leads = {
+  ananya:{id:'ananya',name:'Ananya Rao',src:'WhatsApp',project:'Lakeview Heights, Whitefield',ask:'3BHK · ₹1.4–1.6 Cr',
+    score:86,band:'HOT',dots:5,sla:250,stage:1,owner:'Priya (you)',phone:'+91 98··· ···42',
+    why:'Asked for price sheet + Saturday visit availability. Loan pre-approved.',
+    reasons:['Requested price sheet and asked "can I visit this Saturday?"','Mentioned SBI home-loan pre-approval in first message','Second enquiry in 3 days — portal enquiry auto-merged with this WhatsApp thread','Budget stated matches 3BHK band for this project'],
+    summary:'Relocating from Pune, needs possession within 12 months. Comparing with one competitor project in Whitefield. Decision-maker along with spouse; weekends preferred for visits.',
+    conf:'HIGH (0.86)',
+    nba:'Call now, then send the drafted reply. Contact odds drop ~100x if first touch slips from 5 to 30 min (MIT/InsideSales).',
+    draft:"Hi Ananya, thanks for reaching out about Lakeview Heights! Sharing the 3BHK price sheet and floor plans here. We have site-visit slots this Saturday at 11:00 and 16:00 — would either work for you? I can also arrange a video walkthrough before you visit. — Priya, Lakeview Sales",
+    draftwhy:'Draft references her two explicit asks (price sheet, Saturday visit), offers two concrete slots to reduce back-and-forth, and adds a low-friction alternative (video walkthrough). Tone matched to her short, direct messages. No pricing commitments made — price sheet is the approved collateral.',
+    cadence:[['Day 0','Call after reply is sent (today, within SLA)'],['Day 1','WhatsApp: brochure + loan tie-up one-pager'],['Day 3','Pre-visit checklist + location video'],['Day 7','Call if site visit not yet booked']],
+    timeline:[
+      {t:'in',who:'Ananya · WhatsApp',txt:'Hi, saw Lakeview Heights on the portal. Can you share the price sheet for 3BHK? Also is a site visit possible this Saturday? We have SBI pre-approval.',meta:'11:42 · via WhatsApp Business'},
+      {t:'auto',who:'Auto-acknowledgement',txt:'Thanks for your enquiry about Lakeview Heights! Our sales team will reach out within a few minutes. Reply STOP to opt out.',meta:'11:42 · AUTO · consent-gated · logged'},
+      {t:'sys',txt:'AI: merged duplicate portal enquiry (same phone) · scored 86/100 · assigned to Priya per routing rules · all logged'}
+    ]},
+  imran:{id:'imran',name:'Imran Sheikh',src:'CP referral · HomeBridge Realty',project:'Cedar Park, Sarjapur Rd',ask:'2BHK · ₹90L–1.1 Cr',
+    score:74,band:'HOT',dots:4,sla:660,stage:1,owner:'Rahul',phone:'+91 99··· ···18',
+    why:'CP marked visit-ready. NRI buyer, WhatsApp evenings only (IST).',
+    reasons:['Channel Partner flagged "visit-ready" in referral note','Asked about payment plans for NRIs','Responds on WhatsApp between 19:00–22:00 IST (pattern from 4 messages)'],
+    summary:'NRI buyer based in Dubai, buying for parents. Wants a corner unit if available. CP HomeBridge has already shared the brochure.',
+    conf:'MEDIUM (0.74)',
+    nba:'Send drafted evening-window reply; propose weekend video walkthrough first, site visit for parents next week.',
+    draft:"Hi Imran, thanks for your interest in Cedar Park via HomeBridge Realty. Since you're based in Dubai, would a video walkthrough this weekend work? We can then arrange a site visit for your parents next week. Corner 2BHK availability attached. — Rahul, Cedar Park Sales",
+    draftwhy:'Respects his evening response pattern, routes around the NRI constraint with a video-first step, and confirms the corner-unit interest from the CP note. CP attribution kept intact for commission tracking.',
+    cadence:[['Day 0','WhatsApp reply in 19:00–22:00 IST window'],['Day 2','Video walkthrough (weekend)'],['Day 4','Parents\u2019 site visit proposal'],['Day 8','Call if no visit scheduled']],
+    timeline:[
+      {t:'sys',txt:'Referred by HomeBridge Realty · CP sees stage progress only — PII & payment masked on their side'},
+      {t:'in',who:'Imran · WhatsApp',txt:'Hello, HomeBridge shared Cedar Park with me. Do you have corner 2BHK units? What payment plans work for NRIs?',meta:'Yesterday 20:15'},
+      {t:'auto',who:'Auto-acknowledgement',txt:'Thanks for your enquiry about Cedar Park! Our team will reach out shortly. Reply STOP to opt out.',meta:'Yesterday 20:15 · AUTO · logged'}
+    ]},
+  rohit:{id:'rohit',name:'Rohit Menon',src:'HomeNest Portal',project:'Cedar Park, Sarjapur Rd',ask:'2BHK · ₹85–95L',
+    score:62,band:'WARM',dots:3,sla:1320,stage:1,owner:'Priya (you)',phone:'+91 96··· ···77',
+    why:'Budget fits. Timeline 6–9 months. No visit ask yet.',
+    reasons:['Stated budget within 2BHK band','Timeline "6–9 months" — nurture, not rush','Opened brochure link twice (portal signal)'],
+    summary:'IT professional in Bellandur, first enquiry, exploring Sarjapur corridor. Price-conscious; comparing 3 projects.',
+    conf:'MEDIUM (0.62)',
+    nba:'Send drafted intro with brochure; propose no-pressure weekend visit.',
+    draft:"Hi Rohit, thanks for your enquiry on Cedar Park. Sharing the 2BHK brochure and current availability. If helpful, weekend site visits run every Sat/Sun — happy to block a no-obligation slot whenever you're ready. — Priya, Cedar Park Sales",
+    draftwhy:'Warm lead with a longer timeline — draft avoids pressure, gives collateral, and leaves an open visit invitation. Cadence spaced wider than hot leads.',
+    cadence:[['Day 0','Send intro + brochure'],['Day 4','WhatsApp: price trend + loan options'],['Day 10','Call: gauge shortlist status'],['Day 21','Re-engage with new inventory/offers']],
+    timeline:[
+      {t:'in',who:'Rohit · HomeNest Portal',txt:'Interested in 2BHK at Cedar Park. Budget 85–95L. Planning to buy in 6–9 months.',meta:'10:58 · portal API'},
+      {t:'auto',who:'Auto-acknowledgement',txt:'Thanks for your enquiry about Cedar Park! Our team will reach out shortly.',meta:'10:58 · AUTO · logged'}
+    ]},
+  kavitha:{id:'kavitha',name:'Kavitha S',src:'Website form',project:'Lakeview Heights, Whitefield',ask:'3BHK · budget not stated',
+    score:58,band:'WARM',dots:3,sla:2460,stage:0,owner:'Sana',phone:'+91 97··· ···05',
+    why:'First-time buyer. Asked about bank loan tie-ups.',
+    reasons:['Asked which banks have tie-ups — financing-stage signal','No budget stated — qualification needed','Form filled at 23:40 — quiet hours held the auto-ack until 09:00'],
+    summary:'First-time buyer, early stage. Needs loan guidance before anything else. Good fit for assisted-buying track.',
+    conf:'MEDIUM (0.58)',
+    nba:'Call to qualify budget; lead with loan tie-up guidance (SBI/HDFC).',
+    draft:"Hi Kavitha, thanks for your enquiry about Lakeview Heights. We have tie-ups with SBI, HDFC and Axis for home loans, and our team can help you check eligibility in about 10 minutes. Would a quick call today or tomorrow work? — Sana, Lakeview Sales",
+    draftwhy:'Leads with her stated concern (loans) instead of a visit push. Qualification question embedded as a low-friction call ask.',
+    cadence:[['Day 0','Call: qualify budget + loan stage'],['Day 2','WhatsApp: eligibility checklist'],['Day 6','Invite to loan-assistance desk (on-site)'],['Day 12','Follow-up call']],
+    timeline:[
+      {t:'in',who:'Kavitha · Website form',txt:'Hi, which banks do you have tie-ups with for Lakeview Heights? First time buying.',meta:'23:40 yesterday · web form'},
+      {t:'auto',who:'Auto-acknowledgement',txt:'Thanks for your enquiry! Our team will reach out after 9am. Reply STOP to opt out.',meta:'09:00 · AUTO · held for quiet hours (21:00–09:00) · logged'}
+    ]},
+  deepak:{id:'deepak',name:'Deepak Verma',src:'Email',project:'Lakeview Heights, Whitefield',ask:'1BHK · investor',
+    score:33,band:'COLD',dots:2,sla:10800,stage:0,owner:'Amit',phone:'+91 98··· ···63',
+    why:'Investor exploring. Price-sensitive, no timeline.',
+    reasons:['Asked only about price per sqft and rental yield','No timeline or visit intent expressed','Similar enquiry pattern to 12 prior investor leads that stalled'],
+    summary:'Investor comparing per-sqft rates across Whitefield. Low urgency; suited to monthly nurture track, not exec time.',
+    conf:'HIGH (0.81) that intent is LOW',
+    nba:'Move to nurture track — monthly price-trend digest. Protect exec time for hot leads.',
+    draft:"Hi Deepak, thanks for your interest in Lakeview Heights. Current 1BHK pricing and expected rental yields attached. I'll also add you to our monthly Whitefield price-trend note — and I'm available whenever you'd like to go deeper. — Amit, Lakeview Sales",
+    draftwhy:'Cold investor lead — one useful reply, then automated nurture. AI recommends AGAINST spending call time here; that recommendation is itself logged and overridable.',
+    cadence:[['Day 0','Email reply with pricing + yields'],['Monthly','Price-trend digest (nurture track)']],
+    timeline:[
+      {t:'in',who:'Deepak · Email',txt:'What is the per sqft rate for 1BHK at Lakeview? Expected rental yield?',meta:'08:12 · email'},
+      {t:'auto',who:'Auto-acknowledgement',txt:'Thanks for your enquiry — our team will respond shortly.',meta:'08:13 · AUTO · logged'}
+    ]}
+};
+const queueOrder = ['ananya','imran','rohit','kavitha','deepak'];
+
+const filtered = [
+  {n:'"Best ROI plots, call me" — Loan/plot agent solicitation',r:'Matched 14 prior spam patterns'},
+  {n:'Rohit M. (duplicate — same phone, HomeNest)',r:'Merged into existing lead'},
+  {n:'Bulk broker enquiry — 6 projects in 4 min',r:'Broker-pattern detection'}
+];
+
+const audit = [
+  {t:'11:42',actor:'AI',mode:'AUTO',action:'Auto-acknowledgement sent (WhatsApp)',target:'Ananya Rao',detail:'Consent-gated · template ACK-01',you:false},
+  {t:'11:42',actor:'AI',mode:'AUTO',action:'Duplicate merged (portal ↔ WhatsApp)',target:'Ananya Rao',detail:'Same phone; threads consolidated',you:false},
+  {t:'11:42',actor:'AI',mode:'AUTO',action:'Intent scored 86/100 · owner suggested',target:'Ananya Rao',detail:'Routing rule: Whitefield → Priya',you:false},
+  {t:'11:40',actor:'AI',mode:'AUTO',action:'3 enquiries filtered (spam/dupe)',target:'Queue',detail:'Restorable · patterns logged',you:false},
+  {t:'09:00',actor:'AI',mode:'AUTO',action:'Auto-ack released after quiet hours',target:'Kavitha S',detail:'Held 23:40→09:00 per policy',you:false},
+  {t:'Yest 20:16',actor:'Rahul',mode:'APPROVED',action:'Reply draft approved & sent',target:'Imran Sheikh',detail:'No edits · sent via WhatsApp',you:false}
+];
+
+const controls = [
+  {n:'Spam & duplicate filter',d:'Removes junk, merges dupes. Restorable.',mode:'AUTO'},
+  {n:'Intent scoring & prioritisation',d:'Ranks queue by SLA risk × intent, with reasons.',mode:'AUTO'},
+  {n:'Conversation summaries',d:'Summarises omni-channel threads.',mode:'AUTO'},
+  {n:'Reminder & task creation',d:'Creates follow-up tasks from approved cadences.',mode:'AUTO'},
+  {n:'Auto-acknowledgement',d:'Instant first ack. Consent-gated, quiet-hours aware.',mode:'AUTO'},
+  {n:'Reply drafting',d:'Drafts every customer message for human approval.',mode:'SUGGEST'},
+  {n:'Follow-up cadence proposals',d:'Proposes schedules; exec approves.',mode:'SUGGEST'},
+  {n:'Owner recommendation',d:'Suggests assignee; manager approves.',mode:'SUGGEST'},
+  {n:'Site-visit slot proposals',d:'Suggests slots from calendar availability.',mode:'SUGGEST'}
+];
+const blocked = [
+  'Autonomous customer sends (any channel)',
+  'Booking or payment status changes',
+  'Buyer PII shared with Channel Partners',
+  'Consent or quiet-hours bypass',
+  'Any unlogged action'
+];
+
+const partnerLeads = [
+  {name:'Imran Sheikh',proj:'Cedar Park',stage:2,phone:'+91 ▓▓▓▓▓ ▓▓▓▓▓',referred:'12 days ago',consent:true},
+  {name:'S▓▓▓▓▓ T▓▓▓▓',proj:'Cedar Park',stage:1,phone:'+91 ▓▓▓▓▓ ▓▓▓▓▓',referred:'5 days ago',consent:false},
+  {name:'M▓▓▓▓ A▓▓▓▓',proj:'Lakeview Heights',stage:4,phone:'+91 ▓▓▓▓▓ ▓▓▓▓▓',referred:'34 days ago',consent:false}
+];
+
+const screensByRole = {
+  exec:['queue','workspace','audit'],
+  manager:['dashboard','queue','workspace','controls','audit'],
+  partner:['partner']
+};
+const screenMeta = {
+  queue:{label:'Priority Queue',group:'EXECUTIVE'},
+  workspace:{label:'Lead Workspace',group:'EXECUTIVE'},
+  dashboard:{label:'Team Dashboard',group:'MANAGER'},
+  controls:{label:'AI Controls',group:'MANAGER'},
+  audit:{label:'Audit & AI Log',group:'SHARED'},
+  partner:{label:'My Referrals',group:'PARTNER'}
+};
+
+/* =============== HELPERS =============== */
+const $ = s => document.querySelector(s);
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+
+function fmt(sec){
+  const neg = sec < 0, a = Math.abs(sec);
+  const m = Math.floor(a/60), s = a%60;
+  const mm = m >= 60 ? Math.floor(m/60)+'h '+(m%60)+'m' : m+'m '+String(s).padStart(2,'0')+'s';
+  return neg ? 'BREACHED +'+mm : mm+' left';
+}
+function slaClass(sec){ return sec < 0 ? 'sla breach' : sec < 300 ? 'sla urgent' : 'sla'; }
+function dots(n){ return '●'.repeat(n)+'○'.repeat(5-n); }
+
+function toast(msg){
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = '<span>'+msg+'</span><span class="mono">LOGGED '+now()+'</span>';
+  $('#toasts').appendChild(el);
+  setTimeout(()=>el.remove(), 3600);
+}
+function log(actor, mode, action, target, detail){
+  audit.unshift({t:now(),actor,mode,action,target,detail,you:true});
+}
+
+/* =============== RENDER: SHELL =============== */
+function renderNav(){
+  const allowed = screensByRole[state.role];
+  const groups = {};
+  Object.entries(screenMeta).forEach(([k,m])=>{ (groups[m.group]=groups[m.group]||[]).push([k,m]); });
+  let html = '';
+  for(const [g,items] of Object.entries(groups)){
+    html += '<div class="navlbl">'+g+'</div>';
+    for(const [k,m] of items){
+      const ok = allowed.includes(k);
+      html += '<button class="navitem '+(state.screen===k?'active':'')+(ok?'':' locked')+'" data-action="nav" data-screen="'+k+'" data-ok="'+ok+'">'
+            + '<span>'+m.label+'</span>' + (ok?'':'<span class="lock">RBAC ✕</span>') + '</button>';
+    }
+  }
+  $('#nav').innerHTML = html;
+  const who = {exec:'Signed in: PRIYA · SALES EXECUTIVE · LAKEVIEW + CEDAR PARK',
+               manager:'Signed in: VIKRAM · SALES MANAGER · SOUTH BLR CLUSTER',
+               partner:'Signed in: HOMEBRIDGE REALTY · CHANNEL PARTNER'}[state.role];
+  $('#whoami').textContent = who;
+  $('#roles').innerHTML = ['exec','manager','partner'].map(r =>
+    '<button data-action="role" data-role="'+r+'" class="'+(state.role===r?'on':'')+'">'+r.toUpperCase()+'</button>').join('');
+  $('#guide').style.display = state.guideDismissed ? 'none' : 'flex';
+}
+
+/* =============== RENDER: SCREENS =============== */
+function vQueue(){
+  const atRisk = queueOrder.filter(id=>leads[id].sla<300 && !leads[id].replied).length;
+  let html = `
+  <div class="pagehead">
+    <div><div class="eyebrow">EXECUTIVE VIEW · RANKED BY SLA RISK × INTENT — NOT ARRIVAL TIME</div>
+    <h2>Priority Queue</h2></div>
+    <div class="queue-meta">
+      <span class="chip inv">${atRisk} AT RISK &lt;5 MIN</span>
+      <span class="chip">5 ACTIVE LEADS</span>
+      <span class="chip auto">AI TRIAGE · AUTO · LOGGED</span>
+    </div>
+  </div>`;
+  for(const id of queueOrder){
+    const L = leads[id];
+    html += `
+    <div class="leadcard" data-action="open" data-lead="${id}" role="button" tabindex="0">
+      <div>
+        <div class="name">${L.name} ${L.replied?'<span class="chip human">REPLIED ✓</span>':''}</div>
+        <div class="meta">${L.src} · ${L.project} · ${L.ask} · owner: ${L.owner}</div>
+        <div class="why"><b>WHY THIS RANK →</b> ${L.why}</div>
+      </div>
+      <div class="lc-right">
+        <span class="${slaClass(L.sla)}" data-timer="${id}">${fmt(L.sla)}</span>
+        <span class="dots">${dots(L.dots)}</span>
+        <span class="intlbl">INTENT ${L.score} · ${L.band}</span>
+      </div>
+    </div>`;
+  }
+  html += `
+  <details class="filtered">
+    <summary>▸ AI FILTERED: 3 LOW-QUALITY ENQUIRIES (2 DUPLICATE · 1 SPAM) — AUTO · LOGGED · RESTORABLE</summary>
+    ${filtered.map((f,i)=>`
+      <div class="frow"><span>${f.n} <span class="mono" style="font-size:10px;color:#888">· ${f.r}</span></span>
+      <button class="btn small ghost" data-action="restore" data-i="${i}">Restore</button></div>`).join('')}
+  </details>`;
+  return html;
+}
+
+function vWorkspace(){
+  const L = leads[state.currentLead || 'ananya'];
+  const stages = ['ENQUIRY','CONTACTED','QUALIFIED','SITE VISIT','NEGOTIATION','BOOKING'];
+  const stageNow = L.replied ? Math.max(L.stage,1) : L.stage;
+  return `
+  <button class="backlink" data-action="nav" data-screen="queue" data-ok="true">← Back to queue</button>
+  <div class="ws-head">
+    <div>
+      <h2>${L.name}</h2>
+      <div class="ws-sub">${L.src} · ${L.phone} · ${L.project} · ${L.ask} · owner: ${L.owner}</div>
+    </div>
+    <span class="${slaClass(L.sla)}" data-timer="${L.id}" style="font-size:13px;padding:6px 12px">${fmt(L.sla)}</span>
+  </div>
+  <div class="stepper">${stages.map((s,i)=>`<span class="step ${i<stageNow?'done':i===stageNow?'now':''}">${s}</span>`).join('')}</div>
+
+  <div class="ws-grid">
+    <div class="card">
+      <div class="panel-h"><span>CONVERSATION · OMNI-CHANNEL THREAD</span><span class="chip">${L.src.split(' ')[0].toUpperCase()}</span></div>
+      <div class="timeline" id="timeline">
+        ${L.timeline.map(m => m.t==='sys'
+          ? `<div class="msg sys">— ${esc(m.txt)} —</div>`
+          : `<div class="msg ${m.t}"><strong style="font-size:11px">${m.who}</strong><div>${esc(m.txt)}</div><div class="m-meta">${m.meta}</div></div>`).join('')}
+      </div>
+      <div class="composer">DIRECT COMPOSER DISABLED IN PROTOTYPE — ALL OUTBOUND MESSAGES GO THROUGH APPROVAL (PANEL →)</div>
+    </div>
+
+    <div class="ai-panel">
+      <div class="auto-card ai-block">
+        <h4>AI SUMMARY <span class="chip auto">AUTO · LOGGED</span></h4>
+        <p>${L.summary}</p>
+      </div>
+
+      <div class="auto-card ai-block">
+        <h4>INTENT <span class="chip auto">AUTO · CONFIDENCE ${L.conf}</span></h4>
+        <div class="scoreline"><span class="big">${L.score}</span><span>/100 · ${L.band} · ${dots(L.dots)}</span></div>
+        <ul class="reasons">${L.reasons.map(r=>'<li>'+r+'</li>').join('')}</ul>
+      </div>
+
+      <div class="ai-card ai-block">
+        <h4>NEXT BEST ACTION <span class="chip ai">AI · SUGGEST</span></h4>
+        <p>${L.nba}</p>
+      </div>
+
+      ${L.replied ? `
+      <div class="solid-card ai-block">
+        <h4>REPLY SENT <span class="chip human">HUMAN-APPROVED</span></h4>
+        <p style="color:#333">${esc(L.sentText)}</p>
+        <p class="mono" style="font-size:10px;color:#777;margin-top:8px">APPROVED BY ${state.role==='exec'?'PRIYA (YOU)':'MANAGER'} · ${L.sentAt} · IMMUTABLY LOGGED</p>
+      </div>` : `
+      <div class="ai-card ai-block" id="draftblock">
+        <h4>DRAFT REPLY — ${L.src.includes('Email')?'EMAIL':'WHATSAPP'} <span class="chip ai">AI · SUGGEST</span></h4>
+        <textarea class="drafttext" id="draft" readonly>${L.draft}</textarea>
+        <div class="draft-actions">
+          <button class="btn primary" data-action="approve">Approve &amp; send</button>
+          <button class="btn" data-action="edit" id="editbtn">Edit</button>
+          <button class="btn ghost" data-action="reject">Reject</button>
+        </div>
+        <button class="whylink" data-action="why">Why this draft?</button>
+        <div class="whybox" id="whybox">${L.draftwhy}</div>
+      </div>`}
+
+      <div class="ai-card ai-block" id="cadblock">
+        <h4>FOLLOW-UP CADENCE ${L.cadenceApproved?'<span class="chip human">APPROVED</span>':'<span class="chip ai">AI · SUGGEST</span>'}</h4>
+        <ul class="cadence">${L.cadence.map(c=>`<li><span>${c[0]}</span><span>${c[1]}</span></li>`).join('')}</ul>
+        ${L.cadenceApproved
+          ? '<p class="mono" style="font-size:10px;color:#777;margin-top:8px">REMINDERS CREATED · AUTO · SNOOZE/KILL ANY STEP</p>'
+          : `<div class="draft-actions"><button class="btn primary" data-action="cadence">Approve cadence</button><button class="btn ghost" data-action="modcad">Modify</button></div>`}
+      </div>
+
+      <div class="ai-block card" style="border-style:solid">
+        <h4 style="color:var(--muted)">CONSENT &amp; POLICY</h4>
+        <div class="consent">
+          <span class="chip">WHATSAPP OPT-IN ✓</span>
+          <span class="chip">QUIET HRS 21:00–09:00</span>
+          <span class="chip">DPDP · AUDIT ON</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function vDashboard(){
+  return `
+  <div class="pagehead">
+    <div><div class="eyebrow">MANAGER VIEW · SOUTH BLR CLUSTER · LIVE</div><h2>Team Dashboard</h2></div>
+    <span class="chip auto">SLA RISK DETECTION · AUTO · LOGGED</span>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><div class="v">6m 40s</div><div class="l">Median first response</div><div class="d">TARGET &lt;10m · WAS 4H 10M PRE-AI</div></div>
+    <div class="kpi"><div class="v">62%</div><div class="l">First touch under 5 min</div><div class="d">MIT/INSIDESALES 5-MIN WINDOW</div></div>
+    <div class="kpi"><div class="v">8.2%</div><div class="l">Enquiry → site visit</div><div class="d">WAS 4.1% PRE-AI BASELINE</div></div>
+    <div class="kpi"><div class="v">1</div><div class="l">SLA breaches today</div><div class="d">ESCALATED BELOW ↓</div></div>
+  </div>
+
+  <div class="sec-h">SLA RISK HEATMAP — LEADS PER EXECUTIVE BY STATUS</div>
+  <div class="heatwrap card"><table class="heat">
+    <tr><th style="text-align:left">EXECUTIVE</th><th>ON TRACK</th><th>DUE &lt;1H</th><th>AT RISK &lt;15M</th><th>BREACHED</th><th>ACTIVE</th></tr>
+    <tr><td>Priya</td><td class="h0">4</td><td class="h1">1</td><td class="h2">1</td><td class="h0">0</td><td>6</td></tr>
+    <tr><td>Rahul</td><td class="h0">5</td><td class="h1">2</td><td class="h2">1</td><td class="h3">1</td><td>9</td></tr>
+    <tr><td>Amit</td><td class="h0">4</td><td class="h0">0</td><td class="h0">0</td><td class="h0">0</td><td>4</td></tr>
+    <tr><td>Sana</td><td class="h0">5</td><td class="h1">2</td><td class="h0">0</td><td class="h0">0</td><td>7</td></tr>
+  </table></div>
+
+  <div class="sec-h">ESCALATIONS — AI-DETECTED, HUMAN-RESOLVED</div>
+  <div id="escwrap">
+    <div class="ai-card esc" id="esc1">
+      <div>
+        <div class="t">Meera J · Lakeview Heights — SLA breached 12m ago</div>
+        <div class="d">Rahul has 9 active leads incl. 1 breach. AI suggests reassign to <b>Amit</b> — lightest load (4), same project, 92% draft-acceptance rate.</div>
+        <div class="m">AI · SUGGEST · WHY: LOAD BALANCE + PROJECT MATCH + PERFORMANCE</div>
+      </div>
+      <div class="esc-actions">
+        <button class="btn primary small" data-action="reassign">Reassign to Amit</button>
+        <button class="btn ghost small" data-action="dismiss-esc">Keep with Rahul</button>
+      </div>
+    </div>
+    <div class="ai-card esc">
+      <div>
+        <div class="t">Imran Sheikh · Cedar Park — hot lead, first touch due in <span class="mono" data-timer="imran">${fmt(leads.imran.sla)}</span></div>
+        <div class="d">CP-referred, visit-ready. Rahul notified twice. Recommend nudge or reassignment if untouched in 5 min.</div>
+        <div class="m">AI · SUGGEST · ESCALATION RULE: HOT + CP-REFERRED + &lt;15M</div>
+      </div>
+      <div class="esc-actions">
+        <button class="btn small" data-action="nudge">Nudge Rahul</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function vControls(){
+  return `
+  <div class="pagehead">
+    <div><div class="eyebrow">MANAGER / ADMIN VIEW · GOVERNANCE LAYER</div><h2>AI Controls</h2></div>
+    <span class="chip">CHANGES LOGGED + VERSIONED</span>
+  </div>
+  <div class="sec-h">CAPABILITY MODES — AUTO (LOGGED) / SUGGEST (HUMAN APPROVES) / OFF</div>
+  <div class="card">
+    ${controls.map((c,i)=>`
+    <div class="ctlrow">
+      <div><div class="n">${c.n}</div><div class="d">${c.d}</div></div>
+      <div class="seg" data-i="${i}">
+        ${['AUTO','SUGGEST','OFF'].map(m=>`<button data-action="mode" data-i="${i}" data-m="${m}" class="${c.mode===m?'on':''}">${m}</button>`).join('')}
+      </div>
+    </div>`).join('')}
+  </div>
+  <div class="gradnote">Graduation rule: a capability moves SUGGEST → AUTO only after ≥80% human acceptance over 30 days, and can be demoted instantly. Kill switch applies per capability.</div>
+
+  <div class="sec-h">HARD-BLOCKED — CANNOT BE ENABLED AT ANY PERMISSION LEVEL</div>
+  <div class="card">
+    ${blocked.map(b=>`
+    <div class="blockrow"><span>${b}</span><button class="btn small ghost" data-action="blocked"><span class="mono" style="font-size:10px">🔒 BLOCKED</span></button></div>`).join('')}
+  </div>`;
+}
+
+function vAudit(){
+  return `
+  <div class="pagehead">
+    <div><div class="eyebrow">SHARED VIEW · IMMUTABLE · EXPORTABLE · FILTER BY LEAD / ACTOR / MODE</div><h2>Audit &amp; AI Log</h2></div>
+    <span class="chip inv">YOUR SESSION CLICKS APPEAR HERE</span>
+  </div>
+  <div class="auditwrap card"><table class="audit">
+    <tr><th>TIME</th><th>ACTOR</th><th>MODE</th><th>ACTION</th><th>TARGET</th><th>DETAIL</th></tr>
+    ${audit.map(a=>`
+    <tr class="${a.you?'you':''}">
+      <td class="t">${a.t}</td>
+      <td>${a.actor}</td>
+      <td><span class="chip ${a.mode==='AUTO'?'auto':a.mode==='SUGGEST'?'ai':'human'}">${a.mode}</span></td>
+      <td>${a.action}</td><td>${a.target}</td>
+      <td style="color:#555">${a.detail}</td>
+    </tr>`).join('')}
+  </table></div>`;
+}
+
+function vPartner(){
+  return `
+  <div class="pagehead">
+    <div><div class="eyebrow">CHANNEL PARTNER VIEW · HOMEBRIDGE REALTY · DATA-MASKED BY POLICY</div><h2>My Referrals</h2></div>
+    <span class="chip">3 REFERRED · 1 AT SITE-VISIT+</span>
+  </div>
+  ${partnerLeads.map((p,i)=>`
+  <div class="card pcard">
+    <div class="pgrid">
+      <div>
+        <div class="name">${p.name}</div>
+        <div class="meta">${p.proj} · referred ${p.referred} · contact: <span class="mask">${p.phone}</span></div>
+        <div class="ministep">
+          ${['ENQUIRY','CONTACTED','QUALIFIED','VISIT','NEGO.','BOOKED'].map((s,si)=>`<span class="${si===p.stage?'now':''}">${s}</span>`).join('')}
+        </div>
+        ${p.consent?'' :'<div class="restrict">BUYER HAS NOT CONSENTED TO DETAIL-SHARING — STAGE PROGRESS ONLY</div>'}
+      </div>
+      <button class="btn small ghost" data-action="reqaccess" data-i="${i}">Request access</button>
+    </div>
+    <div class="restrict" style="margin-top:12px">PAYMENT &amp; NEGOTIATION DETAILS — RESTRICTED · COMMISSION VISIBLE POST-BOOKING ONLY</div>
+  </div>`).join('')}`;
+}
+
+/* =============== RENDER ROOT =============== */
+function render(){
+  renderNav();
+  const views = {queue:vQueue,workspace:vWorkspace,dashboard:vDashboard,controls:vControls,audit:vAudit,partner:vPartner};
+  $('#view').innerHTML = views[state.screen]();
+  window.scrollTo(0,0);
+}
+
+/* =============== ACTIONS =============== */
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-action]');
+  if(!el) return;
+  const a = el.dataset.action;
+
+  if(a==='dismiss-guide'){ state.guideDismissed = true; renderNav(); }
+
+  if(a==='role'){
+    state.role = el.dataset.role;
+    state.screen = screensByRole[state.role][0];
+    render();
+  }
+  if(a==='nav'){
+    if(el.dataset.ok === 'false'){ toast('Restricted by role-based access — this screen isn\u2019t available to the '+state.role.toUpperCase()+' role.'); return; }
+    state.screen = el.dataset.screen;
+    if(state.screen==='workspace' && !state.currentLead) state.currentLead='ananya';
+    render();
+  }
+  if(a==='open'){ state.currentLead = el.dataset.lead; state.screen='workspace'; render(); }
+
+  if(a==='why'){ $('#whybox').classList.toggle('open'); }
+
+  if(a==='edit'){
+    const d = $('#draft');
+    if(d.readOnly){ d.readOnly=false; d.focus(); el.textContent='Editing…'; el.disabled=true;
+      log(roleName(),'SUGGEST→EDIT','Draft opened for editing',leads[state.currentLead].name,'Human editing AI draft'); }
+  }
+  if(a==='approve'){
+    const L = leads[state.currentLead];
+    const edited = !$('#draft').readOnly;
+    L.replied = true; L.sentText = $('#draft').value; L.sentAt = now(); L.stage = Math.max(L.stage,1); L.sla = 3600;
+    L.timeline.push({t:'out',who:(state.role==='exec'?'Priya (you)':'Manager')+' · approved send',txt:L.sentText,meta:now()+' · HUMAN-APPROVED · logged'});
+    log(roleName(),'APPROVED', edited?'Draft edited, then approved & sent':'Draft approved & sent', L.name, edited?'Human edits recorded as training signal':'No edits · acceptance logged as signal');
+    toast('Sent after your approval — the AI never sends on its own.');
+    render();
+  }
+  if(a==='reject'){
+    const L = leads[state.currentLead];
+    log(roleName(),'REJECTED','Draft rejected',L.name,'Feedback captured — trains future drafts');
+    toast('Draft rejected. Logged as training feedback.');
+    $('#draftblock').innerHTML = '<h4>DRAFT REJECTED <span class="chip human">HUMAN</span></h4><p style="font-size:12.5px;color:#555">Quick reason (optional): tone off · wrong info · not needed. A fresh draft can be requested. Rejection logged.</p>';
+  }
+  if(a==='cadence'){
+    const L = leads[state.currentLead];
+    L.cadenceApproved = true;
+    log(roleName(),'APPROVED','Follow-up cadence approved · reminders created',L.name,L.cadence.length+' steps · snooze/kill per step');
+    toast('Cadence approved — reminders created automatically (logged).');
+    render();
+  }
+  if(a==='modcad'){ toast('In build: drag steps to re-order, change channel/day per step. Every change logged.'); }
+
+  if(a==='reassign'){
+    log('Vikram (Mgr)','APPROVED','Lead reassigned Rahul → Amit','Meera J','AI suggestion accepted · load + project match');
+    toast('Reassigned to Amit. Rahul + Amit notified. Logged.');
+    $('#esc1').innerHTML = '<div><div class="t">Meera J — reassigned to Amit ✓</div><div class="m">HUMAN-APPROVED · '+now()+' · IN AUDIT LOG</div></div>';
+    $('#esc1').classList.remove('ai-card'); $('#esc1').classList.add('solid-card');
+  }
+  if(a==='dismiss-esc'){
+    log('Vikram (Mgr)','OVERRIDE','AI reassignment suggestion dismissed','Meera J','Kept with Rahul · override logged as signal');
+    toast('Kept with Rahul. Your override is logged and trains the model.');
+    $('#esc1').style.opacity=.45;
+  }
+  if(a==='nudge'){
+    log('Vikram (Mgr)','APPROVED','Nudge sent to Rahul','Imran Sheikh','Internal nudge · no customer contact');
+    toast('Rahul nudged (internal only — no customer contact).');
+  }
+  if(a==='mode'){
+    const i = +el.dataset.i, m = el.dataset.m;
+    if(m==='AUTO' && controls[i].mode==='SUGGEST'){ toast('Blocked: '+controls[i].n+' hasn\u2019t met the 80%/30-day graduation bar yet.'); return; }
+    controls[i].mode = m;
+    log('Vikram (Mgr)','APPROVED','Capability mode changed: '+controls[i].n+' → '+m,'AI Controls','Versioned · reversible');
+    toast(controls[i].n+' set to '+m+'.');
+    render();
+  }
+  if(a==='blocked'){ toast('Hard-blocked at platform level. Cannot be enabled by any role — by design.'); }
+  if(a==='restore'){
+    log(roleName(),'OVERRIDE','Filtered enquiry restored to queue','Queue',filtered[+el.dataset.i].n.slice(0,40)+'…');
+    toast('Restored to queue. Filter override logged as training signal.');
+  }
+  if(a==='reqaccess'){
+    log('HomeBridge (CP)','SUGGEST','Data-access request submitted',partnerLeads[+el.dataset.i].name,'Awaiting Admin approval · consent-checked');
+    toast('Request sent to Admin. Consent will be checked before any data is shared.');
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if(e.key==='Enter' && e.target.matches('.leadcard')) e.target.click();
+});
+
+function roleName(){ return state.role==='exec' ? 'Priya (Exec)' : state.role==='manager' ? 'Vikram (Mgr)' : 'HomeBridge (CP)'; }
+
+/* =============== SLA TICK =============== */
+setInterval(()=>{
+  for(const id of queueOrder){ if(!leads[id].replied) leads[id].sla--; }
+  document.querySelectorAll('[data-timer]').forEach(el=>{
+    const L = leads[el.dataset.timer];
+    if(!L) return;
+    el.textContent = fmt(L.sla);
+    if(el.classList.contains('sla')) el.className = slaClass(L.sla);
+  });
+},1000);
+
+render();
+</script>
+</body>
+</html>
