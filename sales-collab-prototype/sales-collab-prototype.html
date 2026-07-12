@@ -75,6 +75,7 @@
   /* ---------- queue ---------- */
   .queue-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
   .leadcard{display:grid;grid-template-columns:1fr auto;gap:6px 16px;padding:14px 16px;border:1px solid var(--line);background:var(--surface);border-radius:2px;margin-bottom:10px;cursor:pointer;transition:border-color .12s}
+  .leadcard.closed{opacity:.55}
   .leadcard:hover{border-color:var(--ink)}
   .leadcard .name{font-weight:700;font-size:15.5px}
   .leadcard .meta{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:2px}
@@ -111,6 +112,8 @@
   .step:first-child{border-left:1px solid var(--line)}
   .step.done{background:var(--fill);color:var(--ink)}
   .step.now{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+  button.step{cursor:pointer}
+  button.step:hover{background:var(--fill)}
   .ws-grid{display:grid;grid-template-columns:1fr 380px;gap:16px;align-items:start}
   .panel-h{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--line-soft);display:flex;justify-content:space-between;align-items:center}
   .timeline{padding:14px;display:flex;flex-direction:column;gap:10px;max-height:520px;overflow-y:auto}
@@ -136,12 +139,14 @@
   .whybox{border-top:1px dashed var(--line);margin-top:10px;padding-top:8px;font-size:12px;color:#444;display:none}
   .whybox.open{display:block}
   .cadence{list-style:none;margin-top:6px}
-  .cadence li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line-soft);font-size:12.5px}
+  .cadence li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line-soft);font-size:12.5px}
   .cadence li span:first-child{font-family:var(--mono);font-size:10.5px;color:var(--muted);white-space:nowrap}
+  .cadence li.muted{opacity:.5}
+  .cad-actions{display:flex;gap:4px;flex-shrink:0}
   .consent{display:flex;gap:6px;flex-wrap:wrap}
 
   /* ---------- manager ---------- */
-  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:18px}
   .kpi{padding:14px;border:1px solid var(--line);background:var(--surface);border-radius:2px}
   .kpi .v{font-family:var(--mono);font-size:22px;font-weight:600}
   .kpi .l{font-size:11.5px;color:var(--muted);margin-top:3px}
@@ -332,6 +337,39 @@ const leads = {
     ]}
 };
 const queueOrder = ['ananya','imran','rohit','kavitha','deepak'];
+const pipelineStages = ['ENQUIRY','CONTACTED','QUALIFIED','SITE VISIT','NEGOTIATION','BOOKING'];
+
+const incomingPool = [
+  {id:'sneha',name:'Sneha Kulkarni',src:'HomeNest Portal',project:'Cedar Park, Sarjapur Rd',ask:'2BHK · ₹95L–1.05 Cr',
+    score:79,band:'HOT',dots:4,sla:280,stage:0,owner:'Rahul',phone:'+91 90··· ···21',
+    why:'Asked about the SBI subvention scheme and a weekend visit slot.',
+    reasons:['Asked specifically about EMI subvention scheme — financing-stage signal','Requested a weekend site-visit slot','Portal profile shows 2 prior visits to the Cedar Park listing page'],
+    summary:'IT professional, exploring Cedar Park after comparing 2 projects on the portal. Wants clarity on the subvention scheme before committing to a visit.',
+    conf:'HIGH (0.79)',
+    nba:'Call to confirm subvention eligibility, then lock a weekend visit slot.',
+    draft:"Hi Sneha, thanks for your interest in Cedar Park! Yes, the SBI subvention scheme is active for this project — happy to walk you through eligibility on a quick call. Also open to booking a weekend site-visit slot whenever suits you. — Rahul, Cedar Park Sales",
+    draftwhy:'Leads with her explicit question (subvention scheme) before pushing a visit, matching her stated priority order.',
+    cadence:[['Day 0','Call after reply is sent (today, within SLA)'],['Day 1','WhatsApp: subvention scheme one-pager'],['Day 3','Weekend visit slot confirmation'],['Day 7','Call if visit not yet booked']],
+    timeline:[
+      {t:'in',who:'Sneha · HomeNest Portal',txt:'Hi, does Cedar Park have the SBI subvention scheme? Also want to check weekend visit slots.',meta:'Just now · portal API'},
+      {t:'auto',who:'Auto-acknowledgement',txt:'Thanks for your enquiry about Cedar Park! Our team will reach out within a few minutes.',meta:'Just now · AUTO · logged'},
+      {t:'sys',txt:'AI: scored 79/100 · assigned to Rahul per routing rules · all logged'}
+    ]},
+  {id:'farhan',name:'Farhan Ali',src:'WhatsApp',project:'Lakeview Heights, Whitefield',ask:'3BHK · ₹1.3–1.5 Cr',
+    score:64,band:'WARM',dots:3,sla:1500,stage:0,owner:'Sana',phone:'+91 91··· ···54',
+    why:'Asked about clubhouse amenities and possession date — no visit ask yet.',
+    reasons:['Asked about clubhouse/amenities — comparison-stage signal, not urgent','No visit or financing question yet','First enquiry, no prior history'],
+    summary:'Comparing amenities across two Whitefield projects. Possession timeline flexible (12–18 months).',
+    conf:'MEDIUM (0.64)',
+    nba:'Send amenities brochure; no pressure for a visit yet.',
+    draft:"Hi Farhan, thanks for reaching out about Lakeview Heights! Sharing our amenities brochure — clubhouse, pool and landscaped decks are ready and walkable today. Expected possession is Q3 2027. Happy to answer anything else. — Sana, Lakeview Sales",
+    draftwhy:'Matches his comparison-stage questions (amenities, possession) without pushing a visit prematurely.',
+    cadence:[['Day 0','WhatsApp reply with amenities brochure'],['Day 4','Share possession-linked payment plan'],['Day 10','Call to gauge shortlist status'],['Day 21','Re-engage with new updates']],
+    timeline:[
+      {t:'in',who:'Farhan · WhatsApp',txt:'Hi, what amenities does Lakeview Heights have? Also when is possession?',meta:'Just now · WhatsApp Business'},
+      {t:'auto',who:'Auto-acknowledgement',txt:'Thanks for your enquiry about Lakeview Heights! Our team will reach out shortly. Reply STOP to opt out.',meta:'Just now · AUTO · logged'}
+    ]}
+];
 
 const filtered = [
   {n:'"Best ROI plots, call me" — Loan/plot agent solicitation',r:'Matched 14 prior spam patterns'},
@@ -437,28 +475,31 @@ function renderNav(){
 
 /* =============== RENDER: SCREENS =============== */
 function vQueue(){
-  const atRisk = queueOrder.filter(id=>leads[id].sla<300 && !leads[id].replied).length;
+  const activeIds = queueOrder.filter(id=>!leads[id].outcome);
+  const atRisk = activeIds.filter(id=>leads[id].sla<300).length;
   let html = `
   <div class="pagehead">
     <div><div class="eyebrow">EXECUTIVE VIEW · RANKED BY SLA RISK × INTENT — NOT ARRIVAL TIME</div>
     <h2>Priority Queue</h2></div>
     <div class="queue-meta">
       <span class="chip inv">${atRisk} AT RISK &lt;5 MIN</span>
-      <span class="chip">5 ACTIVE LEADS</span>
+      <span class="chip">${activeIds.length} ACTIVE LEADS</span>
       <span class="chip auto">AI TRIAGE · AUTO · LOGGED</span>
     </div>
   </div>`;
   for(const id of queueOrder){
     const L = leads[id];
     html += `
-    <div class="leadcard" data-action="open" data-lead="${id}" role="button" tabindex="0">
+    <div class="leadcard ${L.outcome?'closed':''}" data-action="open" data-lead="${id}" role="button" tabindex="0">
       <div>
-        <div class="name">${L.name} ${L.replied?'<span class="chip human">REPLIED ✓</span>':''}</div>
+        <div class="name">${L.name} ${L.replied&&!L.outcome?'<span class="chip human">REPLIED ✓</span>':''}</div>
         <div class="meta">${L.src} · ${L.project} · ${L.ask} · owner: ${L.owner}</div>
         <div class="why"><b>WHY THIS RANK →</b> ${L.why}</div>
       </div>
       <div class="lc-right">
-        <span class="${slaClass(L.sla)}" data-timer="${id}">${fmt(L.sla)}</span>
+        ${L.outcome
+          ? `<span class="chip human">CLOSED · ${L.outcome.toUpperCase().replace('-',' ')}</span>`
+          : `<span class="${slaClass(L.sla)}" data-timer="${id}">${fmt(L.sla)}</span><span class="intlbl" style="margin-top:-2px">${L.slaLabel||'FIRST RESPONSE SLA'}</span>`}
         <span class="dots">${dots(L.dots)}</span>
         <span class="intlbl">INTENT ${L.score} · ${L.band}</span>
       </div>
@@ -476,7 +517,6 @@ function vQueue(){
 
 function vWorkspace(){
   const L = leads[state.currentLead || 'ananya'];
-  const stages = ['ENQUIRY','CONTACTED','QUALIFIED','SITE VISIT','NEGOTIATION','BOOKING'];
   const stageNow = L.replied ? Math.max(L.stage,1) : L.stage;
   return `
   <button class="backlink" data-action="nav" data-screen="queue" data-ok="true">← Back to queue</button>
@@ -489,9 +529,15 @@ function vWorkspace(){
       <h2>${L.name}</h2>
       <div class="ws-sub">${L.src} · ${L.phone} · ${L.project} · ${L.ask} · owner: ${L.owner}</div>
     </div>
-    <span class="${slaClass(L.sla)}" data-timer="${L.id}" style="font-size:13px;padding:6px 12px">${fmt(L.sla)}</span>
+    ${L.outcome
+      ? `<span class="chip human" style="font-size:13px;padding:6px 12px">CLOSED · ${L.outcome.toUpperCase().replace('-',' ')}</span>`
+      : `<div style="text-align:right"><span class="${slaClass(L.sla)}" data-timer="${L.id}" style="font-size:13px;padding:6px 12px">${fmt(L.sla)}</span><div class="intlbl" style="margin-top:4px">${L.slaLabel||'FIRST RESPONSE SLA'}</div></div>`}
   </div>
-  <div class="stepper">${stages.map((s,i)=>`<span class="step ${i<stageNow?'done':i===stageNow?'now':''}">${s}</span>`).join('')}</div>
+  <div class="stepper">${pipelineStages.map((s,i)=> i===0
+      ? `<span class="step ${i<stageNow?'done':i===stageNow?'now':''}">${s}</span>`
+      : `<button class="step ${i<stageNow?'done':i===stageNow?'now':''}" data-action="setstage" data-i="${i}" title="Mark as ${s}">${s}</button>`
+    ).join('')}</div>
+  <div class="mono" style="font-size:10px;color:var(--muted);margin:-10px 0 14px">Click a stage to update this lead's progress — logged in the Audit trail.</div>
 
   <div class="ws-grid">
     <div class="card">
@@ -541,10 +587,35 @@ function vWorkspace(){
 
       <div class="ai-card ai-block" id="cadblock">
         <h4>FOLLOW-UP CADENCE ${L.cadenceApproved?'<span class="chip human">APPROVED</span>':'<span class="chip ai">AI · SUGGEST</span>'}</h4>
-        <ul class="cadence">${L.cadence.map(c=>`<li><span>${c[0]}</span><span>${c[1]}</span></li>`).join('')}</ul>
+        <ul class="cadence">${L.cadence.map((c,i)=>{
+          const st = (L.cadenceStatus && L.cadenceStatus[i]) || 'active';
+          return `<li class="${st!=='active'?'muted':''}">
+            <span>${c[0]}</span>
+            <span style="flex:1">${c[1]}${st!=='active'?' <span class="chip">'+st.toUpperCase()+'</span>':''}</span>
+            ${L.cadenceApproved ? `<span class="cad-actions">
+              <button class="btn small ghost" data-action="cadstep" data-i="${i}" data-set="snoozed">${st==='snoozed'?'Un-snooze':'Snooze'}</button>
+              <button class="btn small ghost" data-action="cadstep" data-i="${i}" data-set="killed">${st==='killed'?'Restore':'Kill'}</button>
+            </span>` : ''}
+          </li>`;
+        }).join('')}</ul>
         ${L.cadenceApproved
-          ? '<p class="mono" style="font-size:10px;color:#777;margin-top:8px">REMINDERS CREATED · AUTO · SNOOZE/KILL ANY STEP</p>'
+          ? '<p class="mono" style="font-size:10px;color:#777;margin-top:8px">REMINDERS CREATED · AUTO · SNOOZE/KILL PER STEP ABOVE</p>'
           : `<div class="draft-actions"><button class="btn primary" data-action="cadence">Approve cadence</button><button class="btn ghost" data-action="modcad">Modify</button></div>`}
+      </div>
+
+      <div class="ai-card ai-block" id="outcomeblock">
+        <h4>OUTCOME &amp; FEEDBACK ${L.outcome?'<span class="chip human">'+L.outcome.toUpperCase().replace('-',' ')+'</span>':'<span class="chip ai">AI · SUGGEST</span>'}</h4>
+        ${L.outcome ? `
+        <p style="color:#333">Marked <b>${L.outcome.replace('-',' ')}</b> by ${state.role==='exec'?'Priya (you)':'Manager'} · ${L.outcomeAt}.</p>
+        <p class="mono" style="font-size:10px;color:#777;margin-top:8px">FEEDS BACK INTO INTENT SCORING · IMMUTABLY LOGGED</p>
+        ` : `
+        <p>Capture the result once this lead reaches a conclusion — outcomes feed back into future intent scoring and draft quality.</p>
+        <div class="draft-actions">
+          <button class="btn primary" data-action="outcome" data-outcome="booked">Mark booked ✓</button>
+          <button class="btn" data-action="outcome" data-outcome="visit-done">Site visit completed</button>
+          <button class="btn ghost" data-action="outcome" data-outcome="lost">Mark lost</button>
+        </div>
+        `}
       </div>
 
       <div class="ai-block card" style="border-style:solid">
@@ -570,6 +641,8 @@ function vDashboard(){
     <div class="kpi"><div class="v">62%</div><div class="l">First touch under 5 min</div><div class="d">MIT/INSIDESALES 5-MIN WINDOW</div></div>
     <div class="kpi"><div class="v">8.2%</div><div class="l">Enquiry → site visit</div><div class="d">WAS 4.1% PRE-AI BASELINE</div></div>
     <div class="kpi"><div class="v">1</div><div class="l">SLA breaches today</div><div class="d">ESCALATED BELOW ↓</div></div>
+    <div class="kpi"><div class="v">71%</div><div class="l">AI draft acceptance</div><div class="d">TARGET ≥60% · "WRONG INFO" REJECTIONS &lt;10%</div></div>
+    <div class="kpi"><div class="v">93%</div><div class="l">Follow-ups completed on time</div><div class="d">TARGET ≥95% · GUARDRAIL: OPT-OUTS/COMPLAINTS</div></div>
   </div>
 
   <div class="sec-h">SLA RISK HEATMAP — LEADS PER EXECUTIVE BY STATUS</div>
@@ -752,7 +825,8 @@ document.addEventListener('click', e => {
   if(a==='approve'){
     const L = leads[state.currentLead];
     const edited = !$('#draft').readOnly;
-    L.replied = true; L.sentText = $('#draft').value; L.sentAt = now(); L.stage = Math.max(L.stage,1); L.sla = 3600;
+    L.replied = true; L.sentText = $('#draft').value; L.sentAt = now(); L.stage = Math.max(L.stage,1);
+    L.sla = 3600; L.slaLabel = 'NEXT ACTION DUE · DAY 0 CALL';
     L.timeline.push({t:'out',who:(state.role==='exec'?'Priya (you)':'Manager')+' · approved send',txt:L.sentText,meta:now()+' · HUMAN-APPROVED · logged'});
     log(roleName(),'APPROVED', edited?'Draft edited, then approved & sent':'Draft approved & sent', L.name, edited?'Human edits recorded as training signal':'No edits · acceptance logged as signal');
     toast('Sent after your approval — the AI never sends on its own.');
@@ -767,11 +841,50 @@ document.addEventListener('click', e => {
   if(a==='cadence'){
     const L = leads[state.currentLead];
     L.cadenceApproved = true;
+    if(!L.cadenceStatus) L.cadenceStatus = L.cadence.map(()=>'active');
+    const nextStep = L.cadence[1];
+    if(nextStep){
+      const m = nextStep[0].match(/\d+/);
+      const days = m ? parseInt(m[0],10) : 30;
+      L.sla = days*86400;
+      L.slaLabel = 'NEXT FOLLOW-UP DUE · '+nextStep[0].toUpperCase();
+    } else {
+      L.sla = 86400; L.slaLabel = 'NEXT FOLLOW-UP DUE';
+    }
     log(roleName(),'APPROVED','Follow-up cadence approved · reminders created',L.name,L.cadence.length+' steps · snooze/kill per step');
     toast('Cadence approved — reminders created automatically (logged).');
     render();
   }
   if(a==='modcad'){ toast('In build: drag steps to re-order, change channel/day per step. Every change logged.'); }
+  if(a==='cadstep'){
+    const L = leads[state.currentLead];
+    const i = +el.dataset.i, set = el.dataset.set;
+    if(!L.cadenceStatus) L.cadenceStatus = L.cadence.map(()=>'active');
+    const was = L.cadenceStatus[i];
+    L.cadenceStatus[i] = was===set ? 'active' : set;
+    const now_ = L.cadenceStatus[i];
+    log(roleName(), now_==='active'?'REACTIVATED':'OVERRIDE', 'Cadence step '+(now_==='active'?'reactivated':now_), L.name, 'Step '+(i+1)+' ("'+L.cadence[i][1]+'")');
+    toast('Step '+(now_==='active'?'reactivated':now_)+' — logged.');
+    render();
+  }
+  if(a==='outcome'){
+    const L = leads[state.currentLead];
+    const outcome = el.dataset.outcome;
+    L.outcome = outcome; L.outcomeAt = now(); L.slaLabel = 'CLOSED — NO SLA';
+    if(outcome==='booked') L.stage = 5;
+    else if(outcome==='visit-done') L.stage = Math.max(L.stage,3);
+    log(roleName(),'APPROVED','Outcome captured: '+outcome,L.name,'Feeds back into intent scoring · immutably logged');
+    toast('Outcome captured — feeds back into future scoring.');
+    render();
+  }
+  if(a==='setstage'){
+    const L = leads[state.currentLead];
+    const i = +el.dataset.i;
+    L.stage = i;
+    log(roleName(),'APPROVED','Stage updated → '+pipelineStages[i],L.name,'Manually advanced by '+(state.role==='exec'?'Priya':'Manager'));
+    toast('Stage set to '+pipelineStages[i]+'.');
+    render();
+  }
 
   if(a==='reassign'){
     log('Vikram (Mgr)','APPROVED','Lead reassigned Rahul → Amit','Meera J','AI suggestion accepted · load + project match');
@@ -815,14 +928,27 @@ function roleName(){ return state.role==='exec' ? 'Priya (Exec)' : state.role===
 
 /* =============== SLA TICK =============== */
 setInterval(()=>{
-  for(const id of queueOrder){ if(!leads[id].replied) leads[id].sla--; }
+  for(const id of queueOrder){ if(!leads[id].outcome) leads[id].sla--; }
   document.querySelectorAll('[data-timer]').forEach(el=>{
     const L = leads[el.dataset.timer];
-    if(!L) return;
+    if(!L || L.outcome) return;
     el.textContent = fmt(L.sla);
     if(el.classList.contains('sla')) el.className = slaClass(L.sla);
   });
 },1000);
+
+/* =============== LIVE QUEUE: NEW ENQUIRIES ARRIVE =============== */
+function spawnNewLead(){
+  if(!incomingPool.length) return;
+  const L = incomingPool.shift();
+  leads[L.id] = L;
+  queueOrder.push(L.id);
+  queueOrder.sort((a,b)=>leads[b].score-leads[a].score);
+  log('AI','AUTO','New enquiry auto-triaged & added to queue',L.name,'Scored '+L.score+'/100 · routed to '+L.owner);
+  toast('New enquiry: '+L.name+' — auto-triaged & queued (scored '+L.score+').');
+  if(state.screen==='queue') render();
+}
+setInterval(spawnNewLead, 40000);
 
 render();
 </script>
