@@ -265,8 +265,8 @@ const state = {
 
 const leads = {
   ananya:{id:'ananya',name:'Ananya Rao',src:'WhatsApp',project:'Lakeview Heights, Whitefield',ask:'3BHK · ₹1.4–1.6 Cr',
-    score:86,band:'HOT',dots:5,sla:250,stage:1,owner:'Priya (you)',phone:'+91 98··· ···42',
-    why:'Asked for price sheet + Saturday visit availability. Loan pre-approved.',
+    score:86,band:'HOT',dots:5,sla:250,stage:0,owner:'Priya (you)',phone:'+91 98··· ···42',
+    why:'Asked for price sheet + Saturday visit, loan pre-approved — call now, then send the drafted reply.',
     reasons:['Requested price sheet and asked "can I visit this Saturday?"','Mentioned SBI home-loan pre-approval in first message','Second enquiry in 3 days — portal enquiry auto-merged with this WhatsApp thread','Budget stated matches 3BHK band for this project'],
     summary:'Relocating from Pune, needs possession within 12 months. Comparing with one competitor project in Whitefield. Decision-maker along with spouse; weekends preferred for visits.',
     summarySources:'WhatsApp thread (2 msgs) + merged portal enquiry',
@@ -281,8 +281,10 @@ const leads = {
       {t:'sys',txt:'AI: merged duplicate portal enquiry (same phone) · scored 86/100 · assigned to Priya per routing rules · all logged'}
     ]},
   imran:{id:'imran',name:'Imran Sheikh',src:'CP referral · HomeBridge Realty',project:'Cedar Park, Sarjapur Rd',ask:'2BHK · ₹90L–1.1 Cr',
-    score:74,band:'HOT',dots:4,sla:660,stage:1,owner:'Rahul',phone:'+91 99··· ···18',
-    why:'CP marked visit-ready. NRI buyer, WhatsApp evenings only (IST).',
+    score:74,band:'HOT',dots:4,sla:660,stage:2,replied:true,cadenceApproved:true,cadenceStatus:['active','active','active','active'],
+    sentText:"Hi Imran, thanks for your interest in Cedar Park via HomeBridge Realty. Since you're based in Dubai, would a video walkthrough this weekend work? We can then arrange a site visit for your parents next week. Corner 2BHK availability attached. — Rahul, Cedar Park Sales",
+    sentAt:'Yesterday 20:16',owner:'Rahul',phone:'+91 99··· ···18',
+    why:'CP flagged visit-ready; asked about NRI payment plans — qualified, propose the weekend video walkthrough next.',
     reasons:['Channel Partner flagged "visit-ready" in referral note','Asked about payment plans for NRIs','Responds on WhatsApp between 19:00–22:00 IST (pattern from 4 messages)'],
     summary:'NRI buyer based in Dubai, buying for parents. Wants a corner unit if available. CP HomeBridge has already shared the brochure.',
     summarySources:'CP referral note (HomeBridge) + WhatsApp thread',
@@ -294,11 +296,12 @@ const leads = {
     timeline:[
       {t:'sys',txt:'Referred by HomeBridge Realty · CP sees stage progress only — PII & payment masked on their side'},
       {t:'in',who:'Imran · WhatsApp',txt:'Hello, HomeBridge shared Cedar Park with me. Do you have corner 2BHK units? What payment plans work for NRIs?',meta:'Yesterday 20:15'},
-      {t:'auto',who:'Auto-acknowledgement',txt:'Thanks for your enquiry about Cedar Park! Our team will reach out shortly. Reply STOP to opt out.',meta:'Yesterday 20:15 · AUTO · logged'}
+      {t:'auto',who:'Auto-acknowledgement',txt:'Thanks for your enquiry about Cedar Park! Our team will reach out shortly. Reply STOP to opt out.',meta:'Yesterday 20:15 · AUTO · logged'},
+      {t:'out',who:'Rahul · approved send',txt:"Hi Imran, thanks for your interest in Cedar Park via HomeBridge Realty. Since you're based in Dubai, would a video walkthrough this weekend work? We can then arrange a site visit for your parents next week. Corner 2BHK availability attached. — Rahul, Cedar Park Sales",meta:'Yesterday 20:16 · HUMAN-APPROVED · logged'}
     ]},
   rohit:{id:'rohit',name:'Rohit Menon',src:'HomeNest Portal',project:'Cedar Park, Sarjapur Rd',ask:'2BHK · ₹85–95L',
-    score:62,band:'WARM',dots:3,sla:1320,stage:1,owner:'Priya (you)',phone:'+91 96··· ···77',
-    why:'Budget fits. Timeline 6–9 months. No visit ask yet.',
+    score:62,band:'WARM',dots:3,sla:1320,stage:0,owner:'Priya (you)',phone:'+91 96··· ···77',
+    why:'Budget fits, timeline 6–9 months, no visit ask yet — send brochure, no pressure needed.',
     reasons:['Stated budget within 2BHK band','Timeline "6–9 months" — nurture, not rush','Opened brochure link twice (portal signal)'],
     summary:'IT professional in Bellandur, first enquiry, exploring Sarjapur corridor. Price-conscious; comparing 3 projects.',
     summarySources:'Portal enquiry form + brochure-view activity (2 visits)',
@@ -313,7 +316,7 @@ const leads = {
     ]},
   kavitha:{id:'kavitha',name:'Kavitha S',src:'Website form',project:'Lakeview Heights, Whitefield',ask:'3BHK · budget not stated',
     score:58,band:'WARM',dots:3,sla:2460,stage:0,owner:'Sana',phone:'+91 97··· ···05',
-    why:'First-time buyer. Asked about bank loan tie-ups.',
+    why:'First-time buyer asking about loan tie-ups — call to qualify, lead with financing help.',
     reasons:['Asked which banks have tie-ups — financing-stage signal','No budget stated — qualification needed','Form filled at 23:40 — quiet hours held the auto-ack until 09:00'],
     summary:'First-time buyer, early stage. Needs loan guidance before anything else. Good fit for assisted-buying track.',
     summarySources:'Website form submission',
@@ -328,7 +331,7 @@ const leads = {
     ]},
   deepak:{id:'deepak',name:'Deepak Verma',src:'Email',project:'Lakeview Heights, Whitefield',ask:'1BHK · investor',
     score:33,band:'COLD',dots:2,sla:10800,stage:0,owner:'Amit',phone:'+91 98··· ···63',
-    why:'Investor exploring. Price-sensitive, no timeline.',
+    why:'Investor asking only price/yield, no timeline — move to monthly nurture, skip call time.',
     reasons:['Asked only about price per sqft and rental yield','No timeline or visit intent expressed','Similar enquiry pattern to 12 prior investor leads that stalled'],
     summary:'Investor comparing per-sqft rates across Whitefield. Low urgency; suited to monthly nurture track, not exec time.',
     summarySources:'Email thread + prior investor-enquiry pattern (12 similar leads)',
@@ -340,31 +343,34 @@ const leads = {
     timeline:[
       {t:'in',who:'Deepak · Email',txt:'What is the per sqft rate for 1BHK at Lakeview? Expected rental yield?',meta:'08:12 · email'},
       {t:'auto',who:'Auto-acknowledgement',txt:'Thanks for your enquiry — our team will respond shortly.',meta:'08:13 · AUTO · logged'}
-    ]}
-};
-const queueOrder = ['ananya','imran','rohit','kavitha','deepak'];
-const pipelineStages = ['ENQUIRY','CONTACTED','QUALIFIED','SITE VISIT','NEGOTIATION','BOOKING'];
-
-const incomingPool = [
-  {id:'sneha',name:'Sneha Kulkarni',src:'HomeNest Portal',project:'Cedar Park, Sarjapur Rd',ask:'2BHK · ₹95L–1.05 Cr',
-    score:79,band:'HOT',dots:4,sla:280,stage:0,owner:'Rahul',phone:'+91 90··· ···21',
-    why:'Asked about the SBI subvention scheme and a weekend visit slot.',
+    ]},
+  sneha:{id:'sneha',name:'Sneha Kulkarni',src:'HomeNest Portal',project:'Cedar Park, Sarjapur Rd',ask:'2BHK · ₹95L–1.05 Cr',
+    score:79,band:'HOT',dots:4,sla:70000,slaLabel:'NEXT FOLLOW-UP DUE · DAY 1',stage:1,replied:true,owner:'Rahul',phone:'+91 90··· ···21',
+    sentText:"Hi Sneha, thanks for your interest in Cedar Park! Yes, the SBI subvention scheme is active for this project — happy to walk you through eligibility on a quick call. Also open to booking a weekend site-visit slot whenever suits you. — Rahul, Cedar Park Sales",
+    sentAt:'Today 10:20',
+    why:'Asked about the SBI subvention scheme + weekend visit — contacted, awaiting cadence approval.',
     reasons:['Asked specifically about EMI subvention scheme — financing-stage signal','Requested a weekend site-visit slot','Portal profile shows 2 prior visits to the Cedar Park listing page'],
     summary:'IT professional, exploring Cedar Park after comparing 2 projects on the portal. Wants clarity on the subvention scheme before committing to a visit.',
     summarySources:'Portal enquiry + prior listing-page visits (2)',
     conf:'HIGH (0.79)',
-    nba:'Call to confirm subvention eligibility, then lock a weekend visit slot.',
+    nba:'Cadence not yet approved — approve to start automatic reminders.',
     draft:"Hi Sneha, thanks for your interest in Cedar Park! Yes, the SBI subvention scheme is active for this project — happy to walk you through eligibility on a quick call. Also open to booking a weekend site-visit slot whenever suits you. — Rahul, Cedar Park Sales",
     draftwhy:'Leads with her explicit question (subvention scheme) before pushing a visit, matching her stated priority order.',
     cadence:[['Day 0','Call after reply is sent (today, within SLA)'],['Day 1','WhatsApp: subvention scheme one-pager'],['Day 3','Weekend visit slot confirmation'],['Day 7','Call if visit not yet booked']],
     timeline:[
-      {t:'in',who:'Sneha · HomeNest Portal',txt:'Hi, does Cedar Park have the SBI subvention scheme? Also want to check weekend visit slots.',meta:'Just now · portal API'},
-      {t:'auto',who:'Auto-acknowledgement',txt:'Thanks for your enquiry about Cedar Park! Our team will reach out within a few minutes.',meta:'Just now · AUTO · logged'},
-      {t:'sys',txt:'AI: scored 79/100 · assigned to Rahul per routing rules · all logged'}
-    ]},
+      {t:'in',who:'Sneha · HomeNest Portal',txt:'Hi, does Cedar Park have the SBI subvention scheme? Also want to check weekend visit slots.',meta:'Today 10:12 · portal API'},
+      {t:'auto',who:'Auto-acknowledgement',txt:'Thanks for your enquiry about Cedar Park! Our team will reach out within a few minutes.',meta:'Today 10:12 · AUTO · logged'},
+      {t:'sys',txt:'AI: scored 79/100 · assigned to Rahul per routing rules · all logged'},
+      {t:'out',who:'Rahul · approved send',txt:"Hi Sneha, thanks for your interest in Cedar Park! Yes, the SBI subvention scheme is active for this project — happy to walk you through eligibility on a quick call. Also open to booking a weekend site-visit slot whenever suits you. — Rahul, Cedar Park Sales",meta:'Today 10:20 · HUMAN-APPROVED · logged'}
+    ]}
+};
+const queueOrder = ['ananya','imran','rohit','kavitha','deepak','sneha'];
+const pipelineStages = ['ENQUIRY','CONTACTED','QUALIFIED','SITE VISIT','NEGOTIATION','BOOKING'];
+
+const incomingPool = [
   {id:'farhan',name:'Farhan Ali',src:'WhatsApp',project:'Lakeview Heights, Whitefield',ask:'3BHK · ₹1.3–1.5 Cr',
     score:64,band:'WARM',dots:3,sla:1500,stage:0,owner:'Sana',phone:'+91 91··· ···54',
-    why:'Asked about clubhouse amenities and possession date — no visit ask yet.',
+    why:'Asked about amenities and possession date — send brochure, no visit push yet.',
     reasons:['Asked about clubhouse/amenities — comparison-stage signal, not urgent','No visit or financing question yet','First enquiry, no prior history'],
     summary:'Comparing amenities across two Whitefield projects. Possession timeline flexible (12–18 months).',
     summarySources:'WhatsApp thread',
@@ -391,7 +397,9 @@ const audit = [
   {t:'11:42',actor:'AI',mode:'AUTO',action:'Intent scored 86/100 · owner suggested',target:'Ananya Rao',detail:'Routing rule: Whitefield → Priya',you:false},
   {t:'11:40',actor:'AI',mode:'AUTO',action:'3 enquiries filtered (spam/dupe)',target:'Queue',detail:'Restorable · patterns logged',you:false},
   {t:'09:00',actor:'AI',mode:'AUTO',action:'Auto-ack released after quiet hours',target:'Kavitha S',detail:'Held 23:40→09:00 per policy',you:false},
-  {t:'Yest 20:16',actor:'Rahul',mode:'APPROVED',action:'Reply draft approved & sent',target:'Imran Sheikh',detail:'No edits · sent via WhatsApp',you:false}
+  {t:'Yest 20:16',actor:'Rahul',mode:'APPROVED',action:'Reply draft approved & sent',target:'Imran Sheikh',detail:'No edits · sent via WhatsApp',you:false},
+  {t:'Yest 20:20',actor:'Rahul',mode:'APPROVED',action:'Stage updated → QUALIFIED',target:'Imran Sheikh',detail:'Manually advanced by Rahul',you:false},
+  {t:'Today 10:20',actor:'Rahul',mode:'APPROVED',action:'Reply draft approved & sent',target:'Sneha Kulkarni',detail:'No edits · sent via portal message',you:false}
 ];
 
 const controls = [
@@ -446,6 +454,14 @@ function fmt(sec){
 function slaClass(sec){ return sec < 0 ? 'sla breach' : sec < 300 ? 'sla urgent' : 'sla'; }
 function dots(n){ return '●'.repeat(n)+'○'.repeat(5-n); }
 
+function stageStatus(L){
+  if(L.outcome) return null;
+  if(L.stage===2) return {text:'QUALIFIED', sub:'NEXT: BOOK SITE VISIT'};
+  if(L.stage===3) return {text: L.appointment ? 'APPOINTMENT: '+L.appointment.toUpperCase() : 'APPOINTMENT NOT BOOKED YET', sub:'SITE VISIT STAGE'};
+  if(L.stage===4) return {text:'IN NEGOTIATION', sub:'NEXT: CLOSE DEAL'};
+  return null;
+}
+
 function toast(msg){
   const el = document.createElement('div');
   el.className = 'toast';
@@ -497,17 +513,24 @@ function vQueue(){
   </div>`;
   for(const id of queueOrder){
     const L = leads[id];
+    const st = stageStatus(L);
+    let rightTop;
+    if(L.outcome){
+      rightTop = `<span class="chip human">CLOSED · ${L.outcome.toUpperCase().replace('-',' ')}</span>`;
+    } else if(st){
+      rightTop = `<span class="chip inv">${st.text}</span><span class="intlbl" style="margin-top:-2px">${st.sub}</span>`;
+    } else {
+      rightTop = `<span class="${slaClass(L.sla)}" data-timer="${id}">${fmt(L.sla)}</span><span class="intlbl" style="margin-top:-2px">${L.slaLabel||'FIRST RESPONSE SLA'}</span>`;
+    }
     html += `
     <div class="leadcard ${L.outcome?'closed':''}" data-action="open" data-lead="${id}" role="button" tabindex="0">
       <div>
         <div class="name">${L.name} ${L.replied&&!L.outcome?'<span class="chip human">REPLIED ✓</span>':''}</div>
         <div class="meta">${L.src} · ${L.project} · ${L.ask} · owner: ${L.owner}</div>
-        <div class="why"><b>WHY THIS RANK →</b> ${L.why}</div>
+        <div class="why"><b>AI INSIGHT →</b> ${L.why}</div>
       </div>
       <div class="lc-right">
-        ${L.outcome
-          ? `<span class="chip human">CLOSED · ${L.outcome.toUpperCase().replace('-',' ')}</span>`
-          : `<span class="${slaClass(L.sla)}" data-timer="${id}">${fmt(L.sla)}</span><span class="intlbl" style="margin-top:-2px">${L.slaLabel||'FIRST RESPONSE SLA'}</span>`}
+        ${rightTop}
         <span class="dots">${dots(L.dots)}</span>
         <span class="intlbl">INTENT ${L.score} · ${L.band}</span>
       </div>
@@ -526,6 +549,15 @@ function vQueue(){
 function vWorkspace(){
   const L = leads[state.currentLead || 'ananya'];
   const stageNow = L.replied ? Math.max(L.stage,1) : L.stage;
+  const wsStatus = stageStatus(L);
+  let wsRight;
+  if(L.outcome){
+    wsRight = `<span class="chip human" style="font-size:13px;padding:6px 12px">CLOSED · ${L.outcome.toUpperCase().replace('-',' ')}</span>`;
+  } else if(wsStatus){
+    wsRight = `<div style="text-align:right"><span class="chip inv" style="font-size:13px;padding:6px 12px">${wsStatus.text}</span><div class="intlbl" style="margin-top:4px">${wsStatus.sub}</div></div>`;
+  } else {
+    wsRight = `<div style="text-align:right"><span class="${slaClass(L.sla)}" data-timer="${L.id}" style="font-size:13px;padding:6px 12px">${fmt(L.sla)}</span><div class="intlbl" style="margin-top:4px">${L.slaLabel||'FIRST RESPONSE SLA'}</div></div>`;
+  }
   return `
   <button class="backlink" data-action="nav" data-screen="queue" data-ok="true">← Back to queue</button>
   <div class="ws-search-wrap">
@@ -537,9 +569,7 @@ function vWorkspace(){
       <h2>${L.name}</h2>
       <div class="ws-sub">${L.src} · ${L.phone} · ${L.project} · ${L.ask} · owner: ${L.owner}</div>
     </div>
-    ${L.outcome
-      ? `<span class="chip human" style="font-size:13px;padding:6px 12px">CLOSED · ${L.outcome.toUpperCase().replace('-',' ')}</span>`
-      : `<div style="text-align:right"><span class="${slaClass(L.sla)}" data-timer="${L.id}" style="font-size:13px;padding:6px 12px">${fmt(L.sla)}</span><div class="intlbl" style="margin-top:4px">${L.slaLabel||'FIRST RESPONSE SLA'}</div></div>`}
+    ${wsRight}
   </div>
   <div class="stepper">${pipelineStages.map((s,i)=> i===0
       ? `<span class="step ${i<stageNow?'done':i===stageNow?'now':''}">${s}</span>`
@@ -575,6 +605,21 @@ function vWorkspace(){
         <h4>NEXT BEST ACTION <span class="chip ai">AI · SUGGEST</span></h4>
         <p>${L.nba}</p>
       </div>
+
+      ${(L.stage===3 && !L.outcome) ? `
+      <div class="ai-card ai-block" id="apptblock">
+        <h4>SITE VISIT <span class="chip ${L.appointment?'human':'ai'}">${L.appointment?'CONFIRMED':'AI · SUGGEST'}</span></h4>
+        ${L.appointment ? `
+        <p style="color:#333">Slot confirmed: <b>${L.appointment}</b></p>
+        <p class="mono" style="font-size:10px;color:#777;margin-top:8px">REMINDER SET · IMMUTABLY LOGGED</p>
+        ` : `
+        <p>No appointment booked yet. AI suggests slots from calendar availability — pick one to confirm.</p>
+        <div class="draft-actions">
+          <button class="btn primary" data-action="setappointment" data-time="Sat 11:00 AM">Sat 11:00 AM</button>
+          <button class="btn" data-action="setappointment" data-time="Sun 4:00 PM">Sun 4:00 PM</button>
+        </div>
+        `}
+      </div>` : ''}
 
       ${L.replied ? `
       <div class="solid-card ai-block">
@@ -872,6 +917,13 @@ document.addEventListener('click', e => {
     const now_ = L.cadenceStatus[i];
     log(roleName(), now_==='active'?'REACTIVATED':'OVERRIDE', 'Cadence step '+(now_==='active'?'reactivated':now_), L.name, 'Step '+(i+1)+' ("'+L.cadence[i][1]+'")');
     toast('Step '+(now_==='active'?'reactivated':now_)+' — logged.');
+    render();
+  }
+  if(a==='setappointment'){
+    const L = leads[state.currentLead];
+    L.appointment = el.dataset.time;
+    log(roleName(),'APPROVED','Site-visit slot confirmed: '+L.appointment,L.name,'Reminder created · logged');
+    toast('Site-visit slot confirmed for '+L.appointment+'.');
     render();
   }
   if(a==='outcome'){
