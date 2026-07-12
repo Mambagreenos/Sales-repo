@@ -240,7 +240,8 @@
     </div>
     <div class="guide" id="guide">
       <div>
-        <b>Clickable demo path:</b> open <b>Ananya Rao</b> in the queue → approve the AI draft → approve the cadence → switch role to <b>MANAGER</b> → resolve the escalation → open <b>Audit Log</b> (your own clicks will be in it).
+        <div><b>Demo path — as EXEC:</b> open <b>Ananya Rao</b> in the queue → approve the AI draft → approve the cadence (try snooze/kill on a step) → click a pipeline stage above to move her forward (BOOKING records a win) → use the search box to jump to another lead.</div>
+        <div style="margin-top:5px"><b>Demo path — as MANAGER:</b> switch role top-right → check the SLA heatmap on <b>Team Dashboard</b> → resolve the Meera J escalation → open <b>AI Controls</b> to see Suggest/Auto/Blocked modes → open <b>Audit Log</b> (your own clicks are in it).</div>
         <div class="legend">LEGEND — DASHED BORDER: AI SUGGESTION (NEEDS HUMAN) · DOTTED: AI AUTO-ACTION (LOGGED) · SOLID: HUMAN-APPROVED</div>
       </div>
       <button data-action="dismiss-guide">DISMISS</button>
@@ -268,6 +269,7 @@ const leads = {
     why:'Asked for price sheet + Saturday visit availability. Loan pre-approved.',
     reasons:['Requested price sheet and asked "can I visit this Saturday?"','Mentioned SBI home-loan pre-approval in first message','Second enquiry in 3 days — portal enquiry auto-merged with this WhatsApp thread','Budget stated matches 3BHK band for this project'],
     summary:'Relocating from Pune, needs possession within 12 months. Comparing with one competitor project in Whitefield. Decision-maker along with spouse; weekends preferred for visits.',
+    summarySources:'WhatsApp thread (2 msgs) + merged portal enquiry',
     conf:'HIGH (0.86)',
     nba:'Call now, then send the drafted reply. Contact odds drop ~100x if first touch slips from 5 to 30 min (MIT/InsideSales).',
     draft:"Hi Ananya, thanks for reaching out about Lakeview Heights! Sharing the 3BHK price sheet and floor plans here. We have site-visit slots this Saturday at 11:00 and 16:00 — would either work for you? I can also arrange a video walkthrough before you visit. — Priya, Lakeview Sales",
@@ -283,6 +285,7 @@ const leads = {
     why:'CP marked visit-ready. NRI buyer, WhatsApp evenings only (IST).',
     reasons:['Channel Partner flagged "visit-ready" in referral note','Asked about payment plans for NRIs','Responds on WhatsApp between 19:00–22:00 IST (pattern from 4 messages)'],
     summary:'NRI buyer based in Dubai, buying for parents. Wants a corner unit if available. CP HomeBridge has already shared the brochure.',
+    summarySources:'CP referral note (HomeBridge) + WhatsApp thread',
     conf:'MEDIUM (0.74)',
     nba:'Send drafted evening-window reply; propose weekend video walkthrough first, site visit for parents next week.',
     draft:"Hi Imran, thanks for your interest in Cedar Park via HomeBridge Realty. Since you're based in Dubai, would a video walkthrough this weekend work? We can then arrange a site visit for your parents next week. Corner 2BHK availability attached. — Rahul, Cedar Park Sales",
@@ -298,6 +301,7 @@ const leads = {
     why:'Budget fits. Timeline 6–9 months. No visit ask yet.',
     reasons:['Stated budget within 2BHK band','Timeline "6–9 months" — nurture, not rush','Opened brochure link twice (portal signal)'],
     summary:'IT professional in Bellandur, first enquiry, exploring Sarjapur corridor. Price-conscious; comparing 3 projects.',
+    summarySources:'Portal enquiry form + brochure-view activity (2 visits)',
     conf:'MEDIUM (0.62)',
     nba:'Send drafted intro with brochure; propose no-pressure weekend visit.',
     draft:"Hi Rohit, thanks for your enquiry on Cedar Park. Sharing the 2BHK brochure and current availability. If helpful, weekend site visits run every Sat/Sun — happy to block a no-obligation slot whenever you're ready. — Priya, Cedar Park Sales",
@@ -312,6 +316,7 @@ const leads = {
     why:'First-time buyer. Asked about bank loan tie-ups.',
     reasons:['Asked which banks have tie-ups — financing-stage signal','No budget stated — qualification needed','Form filled at 23:40 — quiet hours held the auto-ack until 09:00'],
     summary:'First-time buyer, early stage. Needs loan guidance before anything else. Good fit for assisted-buying track.',
+    summarySources:'Website form submission',
     conf:'MEDIUM (0.58)',
     nba:'Call to qualify budget; lead with loan tie-up guidance (SBI/HDFC).',
     draft:"Hi Kavitha, thanks for your enquiry about Lakeview Heights. We have tie-ups with SBI, HDFC and Axis for home loans, and our team can help you check eligibility in about 10 minutes. Would a quick call today or tomorrow work? — Sana, Lakeview Sales",
@@ -326,6 +331,7 @@ const leads = {
     why:'Investor exploring. Price-sensitive, no timeline.',
     reasons:['Asked only about price per sqft and rental yield','No timeline or visit intent expressed','Similar enquiry pattern to 12 prior investor leads that stalled'],
     summary:'Investor comparing per-sqft rates across Whitefield. Low urgency; suited to monthly nurture track, not exec time.',
+    summarySources:'Email thread + prior investor-enquiry pattern (12 similar leads)',
     conf:'HIGH (0.81) that intent is LOW',
     nba:'Move to nurture track — monthly price-trend digest. Protect exec time for hot leads.',
     draft:"Hi Deepak, thanks for your interest in Lakeview Heights. Current 1BHK pricing and expected rental yields attached. I'll also add you to our monthly Whitefield price-trend note — and I'm available whenever you'd like to go deeper. — Amit, Lakeview Sales",
@@ -345,6 +351,7 @@ const incomingPool = [
     why:'Asked about the SBI subvention scheme and a weekend visit slot.',
     reasons:['Asked specifically about EMI subvention scheme — financing-stage signal','Requested a weekend site-visit slot','Portal profile shows 2 prior visits to the Cedar Park listing page'],
     summary:'IT professional, exploring Cedar Park after comparing 2 projects on the portal. Wants clarity on the subvention scheme before committing to a visit.',
+    summarySources:'Portal enquiry + prior listing-page visits (2)',
     conf:'HIGH (0.79)',
     nba:'Call to confirm subvention eligibility, then lock a weekend visit slot.',
     draft:"Hi Sneha, thanks for your interest in Cedar Park! Yes, the SBI subvention scheme is active for this project — happy to walk you through eligibility on a quick call. Also open to booking a weekend site-visit slot whenever suits you. — Rahul, Cedar Park Sales",
@@ -360,6 +367,7 @@ const incomingPool = [
     why:'Asked about clubhouse amenities and possession date — no visit ask yet.',
     reasons:['Asked about clubhouse/amenities — comparison-stage signal, not urgent','No visit or financing question yet','First enquiry, no prior history'],
     summary:'Comparing amenities across two Whitefield projects. Possession timeline flexible (12–18 months).',
+    summarySources:'WhatsApp thread',
     conf:'MEDIUM (0.64)',
     nba:'Send amenities brochure; no pressure for a visit yet.',
     draft:"Hi Farhan, thanks for reaching out about Lakeview Heights! Sharing our amenities brochure — clubhouse, pool and landscaped decks are ready and walkable today. Expected possession is Q3 2027. Happy to answer anything else. — Sana, Lakeview Sales",
@@ -537,7 +545,7 @@ function vWorkspace(){
       ? `<span class="step ${i<stageNow?'done':i===stageNow?'now':''}">${s}</span>`
       : `<button class="step ${i<stageNow?'done':i===stageNow?'now':''}" data-action="setstage" data-i="${i}" title="Mark as ${s}">${s}</button>`
     ).join('')}</div>
-  <div class="mono" style="font-size:10px;color:var(--muted);margin:-10px 0 14px">Click a stage to update this lead's progress — logged in the Audit trail.</div>
+  <div class="mono" style="font-size:10px;color:var(--muted);margin:-10px 0 14px">Click a stage to update this lead's progress — logged in the Audit trail. Reaching BOOKING records a win (see Outcome &amp; Feedback below).</div>
 
   <div class="ws-grid">
     <div class="card">
@@ -554,6 +562,7 @@ function vWorkspace(){
       <div class="auto-card ai-block">
         <h4>AI SUMMARY <span class="chip auto">AUTO · LOGGED</span></h4>
         <p>${L.summary}</p>
+        <p class="mono" style="font-size:10px;color:#777;margin-top:8px">SOURCES: ${L.summarySources} · CALL TRANSCRIPTS &amp; CRM NOTES INCLUDED WHEN AVAILABLE</p>
       </div>
 
       <div class="auto-card ai-block">
@@ -604,15 +613,13 @@ function vWorkspace(){
       </div>
 
       <div class="ai-card ai-block" id="outcomeblock">
-        <h4>OUTCOME &amp; FEEDBACK ${L.outcome?'<span class="chip human">'+L.outcome.toUpperCase().replace('-',' ')+'</span>':'<span class="chip ai">AI · SUGGEST</span>'}</h4>
+        <h4>OUTCOME &amp; FEEDBACK ${L.outcome==='lost'?'<span class="chip human">LOST</span>':L.outcome==='booked'?'<span class="chip human">BOOKED ✓</span>':'<span class="chip ai">AI · SUGGEST</span>'}</h4>
         ${L.outcome ? `
-        <p style="color:#333">Marked <b>${L.outcome.replace('-',' ')}</b> by ${state.role==='exec'?'Priya (you)':'Manager'} · ${L.outcomeAt}.</p>
+        <p style="color:#333">${L.outcome==='booked' ? 'Booked' : 'Marked lost'} — captured ${L.outcomeAt} by ${state.role==='exec'?'Priya (you)':'Manager'}${L.outcome==='booked' ? ' when the stage above reached BOOKING.' : '.'}</p>
         <p class="mono" style="font-size:10px;color:#777;margin-top:8px">FEEDS BACK INTO INTENT SCORING · IMMUTABLY LOGGED</p>
         ` : `
-        <p>Capture the result once this lead reaches a conclusion — outcomes feed back into future intent scoring and draft quality.</p>
+        <p>The stage tracker above is the single source of truth for progress — moving it to <b>BOOKING</b> automatically records a win here. If this lead won't convert, mark it lost instead; both feed back into future intent scoring.</p>
         <div class="draft-actions">
-          <button class="btn primary" data-action="outcome" data-outcome="booked">Mark booked ✓</button>
-          <button class="btn" data-action="outcome" data-outcome="visit-done">Site visit completed</button>
           <button class="btn ghost" data-action="outcome" data-outcome="lost">Mark lost</button>
         </div>
         `}
@@ -869,20 +876,23 @@ document.addEventListener('click', e => {
   }
   if(a==='outcome'){
     const L = leads[state.currentLead];
-    const outcome = el.dataset.outcome;
-    L.outcome = outcome; L.outcomeAt = now(); L.slaLabel = 'CLOSED — NO SLA';
-    if(outcome==='booked') L.stage = 5;
-    else if(outcome==='visit-done') L.stage = Math.max(L.stage,3);
-    log(roleName(),'APPROVED','Outcome captured: '+outcome,L.name,'Feeds back into intent scoring · immutably logged');
-    toast('Outcome captured — feeds back into future scoring.');
+    L.outcome = 'lost'; L.outcomeAt = now(); L.slaLabel = 'CLOSED — NO SLA';
+    log(roleName(),'APPROVED','Outcome captured: lost',L.name,'Feeds back into intent scoring · immutably logged');
+    toast('Marked lost — feeds back into future scoring.');
     render();
   }
   if(a==='setstage'){
     const L = leads[state.currentLead];
     const i = +el.dataset.i;
     L.stage = i;
+    if(i===5){
+      L.outcome = 'booked'; L.outcomeAt = now(); L.slaLabel = 'CLOSED — NO SLA';
+    } else if(L.outcome){
+      delete L.outcome; delete L.outcomeAt;
+      L.slaLabel = 'NEXT FOLLOW-UP DUE';
+    }
     log(roleName(),'APPROVED','Stage updated → '+pipelineStages[i],L.name,'Manually advanced by '+(state.role==='exec'?'Priya':'Manager'));
-    toast('Stage set to '+pipelineStages[i]+'.');
+    toast('Stage set to '+pipelineStages[i]+(i===5?' — booked outcome recorded.':'.'));
     render();
   }
 
